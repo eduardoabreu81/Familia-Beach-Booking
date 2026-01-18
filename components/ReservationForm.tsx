@@ -79,7 +79,8 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
       if (user) {
         setGuestName(user.name);
         setColor(user.color);
-        if (user.email) setEmail(user.email);
+        // Always update email, even if empty, to reflect the selected user's data
+        setEmail(user.email || '');
       }
     }
   };
