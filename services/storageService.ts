@@ -59,7 +59,7 @@ export const getApartmentSettings = (): Record<ApartmentId, ApartmentSettings> =
   return {
     [ApartmentId.CARAGUA]: {
       id: ApartmentId.CARAGUA,
-      name: 'Casa Caraguatatuba',
+      name: 'Apto Caraguatatuba',
       location: 'Caraguatatuba, SP',
       photoUrl: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&q=80&w=800',
       rules: ['Check-in após as 14h', 'Levar roupa de cama', 'Proibido som alto após 22h']

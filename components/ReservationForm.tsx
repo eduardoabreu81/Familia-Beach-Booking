@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ApartmentId, Reservation, ApartmentSettings } from '../types';
-import { Calendar as CalendarIcon, User, FileText, CheckCircle, AlertCircle, Palette } from 'lucide-react';
+import { Calendar as CalendarIcon, User, FileText, CheckCircle, AlertCircle, Palette, Mail } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
 interface ReservationFormProps {
   settings: Record<ApartmentId, ApartmentSettings>;
@@ -25,6 +26,7 @@ const COLORS = [
 const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit }) => {
   const [apartmentId, setApartmentId] = useState<ApartmentId>(ApartmentId.CARAGUA);
   const [guestName, setGuestName] = useState('');
+  const [email, setEmail] = useState('');
   const [color, setColor] = useState(COLORS[6]); // Default Blue
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -48,6 +50,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
     const success = onSubmit({
       apartmentId,
       guestName,
+      email,
       color,
       startDate,
       endDate,
@@ -55,8 +58,31 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
     });
 
     if (success) {
+      // Send email notification if email is provided
+      if (email) {
+        // Note: These are placeholder IDs. You need to create an account at emailjs.com
+        // and replace these with your actual Service ID, Template ID, and Public Key.
+        const templateParams = {
+          to_email: email,
+          guest_name: guestName,
+          apartment_name: settings[apartmentId].name,
+          start_date: new Date(startDate).toLocaleDateString('pt-BR'),
+          end_date: new Date(endDate).toLocaleDateString('pt-BR'),
+          notes: notes
+        };
+
+        // Uncomment and configure to enable real emails
+        // emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams, 'YOUR_PUBLIC_KEY')
+        //   .then((response) => {
+        //      console.log('SUCCESS!', response.status, response.text);
+        //   }, (err) => {
+        //      console.log('FAILED...', err);
+        //   });
+      }
+
       setMessage({ type: 'success', text: 'Reserva realizada com sucesso!' });
       setGuestName('');
+      setEmail('');
       setStartDate('');
       setEndDate('');
       setNotes('');
@@ -110,6 +136,20 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               placeholder="Ex: Primo André"
+              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">E-mail (Opcional)</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Para receber confirmação"
               className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
