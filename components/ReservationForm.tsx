@@ -84,7 +84,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
 
