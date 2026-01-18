@@ -8,6 +8,8 @@ interface BookingCalendarProps {
   currentDate: Date;
   onPrevMonth: () => void;
   onNextMonth: () => void;
+  activeTab: ApartmentId;
+  onTabChange: (id: ApartmentId) => void;
 }
 
 const BookingCalendar: React.FC<BookingCalendarProps> = ({ 
@@ -15,9 +17,10 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   settings,
   currentDate, 
   onPrevMonth, 
-  onNextMonth 
+  onNextMonth,
+  activeTab,
+  onTabChange
 }) => {
-  const [activeTab, setActiveTab] = useState<ApartmentId>(ApartmentId.CARAGUA);
 
   const monthNames = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -93,7 +96,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       {/* Tabs */}
       <div className="flex border-b border-slate-200">
         <button
-          onClick={() => setActiveTab(ApartmentId.CARAGUA)}
+          onClick={() => onTabChange(ApartmentId.CARAGUA)}
           className={`flex-1 py-4 text-sm sm:text-base font-medium transition-colors relative
             ${activeTab === ApartmentId.CARAGUA ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:bg-slate-50'}`}
         >
@@ -102,7 +105,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
         </button>
         <div className="w-px bg-slate-200"></div>
         <button
-          onClick={() => setActiveTab(ApartmentId.PRAIA_GRANDE)}
+          onClick={() => onTabChange(ApartmentId.PRAIA_GRANDE)}
           className={`flex-1 py-4 text-sm sm:text-base font-medium transition-colors relative
             ${activeTab === ApartmentId.PRAIA_GRANDE ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:bg-slate-50'}`}
         >

@@ -1,8 +1,8 @@
 import { Reservation, ApartmentId, ApartmentSettings, User } from '../types';
 
-const STORAGE_KEY = 'family_beach_bookings_v2';
-const SETTINGS_KEY = 'family_beach_settings_v2';
-const USERS_KEY = 'family_beach_users_v2';
+const STORAGE_KEY = 'family_beach_bookings_v3';
+const SETTINGS_KEY = 'family_beach_settings_v3';
+const USERS_KEY = 'family_beach_users_v3';
 
 export const getReservations = (): Reservation[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -62,6 +62,7 @@ export const getApartmentSettings = (): Record<ApartmentId, ApartmentSettings> =
       id: ApartmentId.CARAGUA,
       name: 'Apto Caraguatatuba',
       location: 'Caraguatatuba, SP',
+      mapLink: 'https://maps.google.com/?q=Caraguatatuba,SP',
       photoUrl: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&q=80&w=800',
       rules: ['Check-in após as 14h', 'Levar roupa de cama', 'Proibido som alto após 22h']
     },
@@ -69,7 +70,8 @@ export const getApartmentSettings = (): Record<ApartmentId, ApartmentSettings> =
       id: ApartmentId.PRAIA_GRANDE,
       name: 'Apto Praia Grande',
       location: 'Praia Grande, SP',
-      photoUrl: 'https://images.unsplash.com/photo-1520483602335-3b25f4137707?auto=format&fit=crop&q=80&w=800',
+      mapLink: 'https://maps.google.com/?q=Praia+Grande,SP',
+      photoUrl: 'https://images.unsplash.com/photo-1520483601560-389dff434fdf?auto=format&fit=crop&q=80&w=800',
       rules: ['Check-out até as 12h', 'Não aceita pets', 'Recolher o lixo na saída']
     }
   };

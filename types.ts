@@ -7,6 +7,7 @@ export interface ApartmentSettings {
   id: ApartmentId;
   name: string;
   location: string;
+  mapLink?: string;
   photoUrl: string;
   rules: string[];
 }

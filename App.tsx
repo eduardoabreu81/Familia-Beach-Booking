@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [settings, setSettings] = useState<Record<ApartmentId, ApartmentSettings> | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState<ApartmentId>(ApartmentId.CARAGUA);
 
   useEffect(() => {
     seedData(); 
@@ -83,7 +84,7 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          <main className="max-w-6xl mx-auto px-4 sm:px-8 -mt-16 space-y-8 relative z-20">
+          <main className="max-w-6xl mx-auto px-4 sm:px-8 mt-8 space-y-8 relative z-20">
             
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-3 gap-8">
@@ -96,6 +97,8 @@ const App: React.FC = () => {
                   currentDate={currentDate}
                   onNextMonth={nextMonth}
                   onPrevMonth={prevMonth}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
                 />
                 
                 {/* Rules Cards (Side by Side) */}
@@ -121,28 +124,35 @@ const App: React.FC = () => {
                 
                 {/* Mini Location Card - Dynamic */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group">
-                  <div className="h-32 overflow-hidden relative">
+                  <div className="h-48 overflow-hidden relative">
                      <img 
-                      src={settings[ApartmentId.CARAGUA].photoUrl}
-                      alt={settings[ApartmentId.CARAGUA].name}
-                      className="w-1/2 h-full object-cover float-left transition-transform duration-700 group-hover:scale-110"
+                      key={activeTab}
+                      src={settings[activeTab].photoUrl}
+                      alt={settings[activeTab].name}
+                      className="w-full h-full object-cover transition-opacity duration-500 animate-in fade-in"
                     />
-                    <img 
-                      src={settings[ApartmentId.PRAIA_GRANDE].photoUrl}
-                      alt={settings[ApartmentId.PRAIA_GRANDE].name}
-                      className="w-1/2 h-full object-cover float-left transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                      <h3 className="text-white font-bold text-lg shadow-sm">{settings[activeTab].name}</h3>
+                    </div>
                   </div>
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-red-500 mt-0.5" />
+                      <MapPin className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-slate-800">Localizações</h4>
-                        <p className="text-sm text-slate-500 mt-1">
-                          {settings[ApartmentId.CARAGUA].location}<br/>
-                          {settings[ApartmentId.PRAIA_GRANDE].location}
+                        <h4 className="font-semibold text-slate-800">Localização</h4>
+                        <p className="text-sm text-slate-500 mt-1 mb-2">
+                          {settings[activeTab].location}
                         </p>
+                        {settings[activeTab].mapLink && (
+                          <a 
+                            href={settings[activeTab].mapLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                          >
+                            Ver no Google Maps &rarr;
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -153,7 +163,7 @@ const App: React.FC = () => {
           </main>
 
           {/* Footer */}
-          <footer className="mt-20 py-8 text-center text-slate-400 text-sm border-t border-slate-200 relative z-10 bg-slate-50">
+          <footer className="mt-12 py-8 text-center text-slate-400 text-sm border-t border-slate-200 bg-slate-50">
             <p>&copy; {new Date().getFullYear()} Reserva Praia - Clã do Constantino. Aproveitem as férias!</p>
           </footer>
         </div>
