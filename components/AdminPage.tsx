@@ -30,7 +30,8 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [localSettings, setLocalSettings] = useState<Record<ApartmentId, ApartmentSettings>>(settings);
   const [activeTab, setActiveTab] = useState<ApartmentId | 'users'>(ApartmentId.CARAGUA);
   const [users, setUsers] = useState<User[]>([]);
-  const [newUser, setNewUser] = useState({ name: '', color: COLORS[0] });
+  const [newUser, setNewUser] = useState({ name: '', email: '', color: COLORS[0] });
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [, setLocation] = useLocation();
 
   // Sync local settings when props change
@@ -105,12 +106,22 @@ const AdminPage: React.FC<AdminPageProps> = ({
     const user: User = {
       id: Math.random().toString(36).substr(2, 9),
       name: newUser.name,
+      email: newUser.email,
       color: newUser.color
     };
     
     saveUser(user);
     setUsers(getUsers());
-    setNewUser({ name: '', color: COLORS[0] });
+    setNewUser({ name: '', email: '', color: COLORS[0] });
+  };
+
+  const handleUpdateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser || !editingUser.name) return;
+
+    saveUser(editingUser); // saveUser handles update if ID exists
+    setUsers(getUsers());
+    setEditingUser(null);
   };
 
   const handleDeleteUser = (id: string) => {
@@ -233,18 +244,28 @@ const AdminPage: React.FC<AdminPageProps> = ({
             {/* Add User Form */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 h-fit">
               <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">
-                Adicionar Familiar
+                {editingUser ? 'Editar Familiar' : 'Adicionar Familiar'}
               </h2>
-              <form onSubmit={handleAddUser} className="space-y-4">
+              <form onSubmit={editingUser ? handleUpdateUser : handleAddUser} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Nome</label>
                   <input
                     type="text"
                     required
-                    value={newUser.name}
-                    onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                    value={editingUser ? editingUser.name : newUser.name}
+                    onChange={(e) => editingUser ? setEditingUser({...editingUser, name: e.target.value}) : setNewUser({...newUser, name: e.target.value})}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="Ex: Tia Maria"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">E-mail (Opcional)</label>
+                  <input
+                    type="email"
+                    value={editingUser ? (editingUser.email || '') : newUser.email}
+                    onChange={(e) => editingUser ? setEditingUser({...editingUser, email: e.target.value}) : setNewUser({...newUser, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="email@exemplo.com"
                   />
                 </div>
                 <div>
@@ -254,19 +275,31 @@ const AdminPage: React.FC<AdminPageProps> = ({
                       <button
                         key={c}
                         type="button"
-                        onClick={() => setNewUser({...newUser, color: c})}
-                        className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${newUser.color === c ? 'border-slate-800 scale-110' : 'border-transparent'}`}
+                        onClick={() => editingUser ? setEditingUser({...editingUser, color: c}) : setNewUser({...newUser, color: c})}
+                        className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${(editingUser ? editingUser.color : newUser.color) === c ? 'border-slate-800 scale-110' : 'border-transparent'}`}
                         style={{ backgroundColor: c }}
                       />
                     ))}
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Cadastrar
-                </button>
+                <div className="flex gap-2">
+                  {editingUser && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingUser(null)}
+                      className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    {editingUser ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    {editingUser ? 'Salvar' : 'Cadastrar'}
+                  </button>
+                </div>
               </form>
             </div>
 
@@ -278,18 +311,31 @@ const AdminPage: React.FC<AdminPageProps> = ({
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
                 {users.map(user => (
                   <div key={user.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => setEditingUser(user)}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: user.color }}>
                         {user.name.charAt(0)}
                       </div>
-                      <span className="font-medium text-slate-700">{user.name}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-700">{user.name}</span>
+                        {user.email && <span className="text-xs text-slate-400">{user.email}</span>}
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="text-slate-400 hover:text-blue-500 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                        title="Editar"
+                      >
+                        <SettingsIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {users.length === 0 && (

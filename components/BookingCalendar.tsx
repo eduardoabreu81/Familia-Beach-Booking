@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Reservation, ApartmentId, ApartmentSettings } from '../types';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Edit2, Trash2, X } from 'lucide-react';
 
 interface BookingCalendarProps {
   reservations: Reservation[];
@@ -10,6 +10,8 @@ interface BookingCalendarProps {
   onNextMonth: () => void;
   activeTab: ApartmentId;
   onTabChange: (id: ApartmentId) => void;
+  onEditReservation?: (reservation: Reservation) => void;
+  onDeleteReservation?: (id: string) => void;
 }
 
 const BookingCalendar: React.FC<BookingCalendarProps> = ({ 
@@ -19,8 +21,24 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   onPrevMonth, 
   onNextMonth,
   activeTab,
-  onTabChange
+  onTabChange,
+  onEditReservation,
+  onDeleteReservation
 }) => {
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{x: number, y: number} | null>(null);
+
+  const handleReservationClick = (e: React.MouseEvent, res: Reservation) => {
+    e.stopPropagation();
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setPopupPosition({ x: rect.left, y: rect.bottom + window.scrollY });
+    setSelectedReservation(res);
+  };
+
+  const closePopup = () => {
+    setSelectedReservation(null);
+    setPopupPosition(null);
+  };
 
   const monthNames = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -170,7 +188,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 {todaysReservations.map(res => (
                   <div 
                     key={res.id} 
-                    className="text-[10px] sm:text-xs px-1.5 py-1 rounded text-white shadow-sm truncate w-full"
+                    onClick={(e) => handleReservationClick(e, res)}
+                    className="text-[10px] sm:text-xs px-1.5 py-1 rounded text-white shadow-sm truncate w-full cursor-pointer hover:opacity-90 transition-opacity"
                     style={{ backgroundColor: res.color }}
                     title={`${res.guestName}`}
                   >
@@ -188,6 +207,62 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
         <span>Mostrando: <strong>{activeSettings.name}</strong></span>
         <span>{activeSettings.location}</span>
       </div>
+
+      {/* Reservation Popup */}
+      {selectedReservation && popupPosition && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={closePopup}></div>
+          <div 
+            className="absolute z-50 bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-72 animate-in fade-in zoom-in-95 duration-200"
+            style={{ 
+              top: Math.min(popupPosition.y, window.innerHeight + window.scrollY - 250), // Prevent going off bottom
+              left: Math.min(popupPosition.x, window.innerWidth - 300) // Prevent going off right
+            }}
+          >
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="font-bold text-slate-800 text-lg">{selectedReservation.guestName}</h3>
+              <button onClick={closePopup} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-2 text-sm text-slate-600 mb-4">
+              <p><span className="font-medium">Entrada:</span> {new Date(selectedReservation.startDate).toLocaleDateString('pt-BR')}</p>
+              <p><span className="font-medium">Saída:</span> {new Date(selectedReservation.endDate).toLocaleDateString('pt-BR')}</p>
+              {selectedReservation.notes && (
+                <p className="bg-slate-50 p-2 rounded border border-slate-100 italic text-xs">
+                  "{selectedReservation.notes}"
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-100">
+              {onEditReservation && (
+                <button 
+                  onClick={() => {
+                    onEditReservation(selectedReservation);
+                    closePopup();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                >
+                  <Edit2 className="w-3 h-3" /> Editar
+                </button>
+              )}
+              {onDeleteReservation && (
+                <button 
+                  onClick={() => {
+                    onDeleteReservation(selectedReservation.id);
+                    closePopup();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" /> Excluir
+                </button>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

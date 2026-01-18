@@ -26,6 +26,7 @@ export interface Reservation {
 export interface User {
   id: string;
   name: string;
+  email?: string;
   color: string;
 }
 

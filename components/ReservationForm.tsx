@@ -6,7 +6,9 @@ import emailjs from '@emailjs/browser';
 
 interface ReservationFormProps {
   settings: Record<ApartmentId, ApartmentSettings>;
-  onSubmit: (res: Omit<Reservation, 'id'>) => boolean;
+  onSubmit: (res: Omit<Reservation, 'id'>) => Promise<boolean>;
+  initialData?: Reservation | null;
+  onCancelEdit?: () => void;
 }
 
 const COLORS = [
@@ -24,7 +26,7 @@ const COLORS = [
   '#64748b'  // Slate
 ];
 
-const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit }) => {
+const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, initialData, onCancelEdit }) => {
   const [apartmentId, setApartmentId] = useState<ApartmentId>(ApartmentId.CARAGUA);
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -41,6 +43,28 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
     setUsers(getUsers());
   }, []);
 
+  useEffect(() => {
+    if (initialData) {
+      setApartmentId(initialData.apartmentId);
+      setGuestName(initialData.guestName);
+      setEmail(initialData.email || '');
+      setColor(initialData.color);
+      setStartDate(initialData.startDate);
+      setEndDate(initialData.endDate);
+      setNotes(initialData.notes || '');
+      
+      // Try to match with existing user
+      const existingUser = users.find(u => u.name === initialData.guestName);
+      if (existingUser) {
+        setSelectedUserId(existingUser.id);
+        setIsNewUser(false);
+      } else {
+        setSelectedUserId('new');
+        setIsNewUser(true);
+      }
+    }
+  }, [initialData, users]);
+
   const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const userId = e.target.value;
     setSelectedUserId(userId);
@@ -55,6 +79,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
       if (user) {
         setGuestName(user.name);
         setColor(user.color);
+        if (user.email) setEmail(user.email);
       }
     }
   };
@@ -78,13 +103,23 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
       const newUser: UserType = {
         id: Math.random().toString(36).substr(2, 9),
         name: guestName,
+        email: email,
         color: color
       };
       saveUser(newUser);
       setUsers(getUsers()); // Refresh list
     }
 
-    const success = onSubmit({
+    // If editing, we might want to update the user's email if it changed
+    if (!isNewUser && selectedUserId && email) {
+      const user = users.find(u => u.id === selectedUserId);
+      if (user && user.email !== email) {
+        saveUser({ ...user, email });
+        setUsers(getUsers());
+      }
+    }
+
+    const success = await onSubmit({
       apartmentId,
       guestName,
       email,
@@ -133,7 +168,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-lg border border-slate-100">
       <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
         <CalendarIcon className="w-5 h-5 text-blue-600" />
-        Nova Reserva
+        {initialData ? 'Editar Reserva' : 'Nova Reserva'}
       </h3>
 
       <div className="space-y-5">
@@ -276,12 +311,23 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
           </div>
         )}
 
-        <button
-          type="submit"
-          className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow-lg shadow-slate-200 transition-all active:scale-[0.98]"
-        >
-          Agendar Estadia
-        </button>
+        <div className="flex gap-2">
+          {initialData && onCancelEdit && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-all"
+            >
+              Cancelar
+            </button>
+          )}
+          <button
+            type="submit"
+            className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow-lg shadow-slate-200 transition-all active:scale-[0.98]"
+          >
+            {initialData ? 'Salvar Alterações' : 'Agendar Estadia'}
+          </button>
+        </div>
       </div>
     </form>
   );
