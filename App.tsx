@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Route, Switch } from 'wouter';
-import { getReservations, saveReservation, deleteReservation, seedData, getApartmentSettings, saveApartmentSettings } from './services/storageService';
+import { getReservations, saveReservation, deleteReservation, getApartmentSettings, saveApartmentSettings, subscribeToReservations } from './services/firestoreService';
+import { sendConfirmationEmail } from './services/emailService';
 import { Reservation, ApartmentId, ApartmentSettings } from './types';
 import BookingCalendar from './components/BookingCalendar';
 import ReservationForm from './components/ReservationForm';
@@ -14,34 +15,47 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ApartmentId>(ApartmentId.CARAGUA);
 
   useEffect(() => {
-    seedData(); 
-    setReservations(getReservations());
-    setSettings(getApartmentSettings());
+    // Initial load
+    const loadData = async () => {
+      const loadedSettings = await getApartmentSettings();
+      setSettings(loadedSettings);
+    };
+    loadData();
+
+    // Real-time subscription for reservations
+    const unsubscribe = subscribeToReservations((updatedReservations) => {
+      setReservations(updatedReservations);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const handleNewReservation = (resData: Omit<Reservation, 'id'>) => {
-    const newRes: Reservation = {
-      ...resData,
-      id: Math.random().toString(36).substr(2, 9)
-    };
-    
-    const success = saveReservation(newRes);
-    if (success) {
-      setReservations(getReservations());
-      return true;
+  const handleNewReservation = async (resData: Omit<Reservation, 'id'>) => {
+    try {
+      const success = await saveReservation(resData);
+      if (success && settings) {
+        // Send confirmation email
+        const apartmentName = settings[resData.apartmentId].name;
+        // We don't await this because we don't want to block the UI
+        sendConfirmationEmail(resData, apartmentName);
+      }
+      return success;
+    } catch (error) {
+      console.error("Error saving reservation:", error);
+      alert("Erro ao salvar reserva. Tente novamente.");
+      return false;
     }
-    return false;
   };
 
-  const handleUpdateSettings = (newSettings: Record<ApartmentId, ApartmentSettings>) => {
-    saveApartmentSettings(newSettings);
+  const handleUpdateSettings = async (newSettings: Record<ApartmentId, ApartmentSettings>) => {
+    await saveApartmentSettings(newSettings);
     setSettings(newSettings);
   };
 
-  const handleDeleteReservation = (id: string) => {
+  const handleDeleteReservation = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta reserva?')) {
-      deleteReservation(id);
-      setReservations(getReservations());
+      await deleteReservation(id);
+      // No need to manually update state, subscription handles it
     }
   };
 

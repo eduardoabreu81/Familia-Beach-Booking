@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApartmentId, ApartmentSettings, Reservation, User } from '../types';
-import { getUsers, saveUser } from '../services/storageService';
+import { login, logout, subscribeToAuth } from '../services/authService';
+import { getUsers, saveUser } from '../services/storageService'; // We will need to migrate users too later, but for now let's fix auth first
 import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut, Users, Palette } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -23,7 +24,9 @@ const AdminPage: React.FC<AdminPageProps> = ({
   onDeleteReservation 
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [localSettings, setLocalSettings] = useState<Record<ApartmentId, ApartmentSettings>>(settings);
   const [activeTab, setActiveTab] = useState<ApartmentId | 'users'>(ApartmentId.CARAGUA);
   const [users, setUsers] = useState<User[]>([]);
@@ -34,21 +37,26 @@ const AdminPage: React.FC<AdminPageProps> = ({
   useEffect(() => {
     setLocalSettings(settings);
     setUsers(getUsers());
+    
+    const unsubscribe = subscribeToAuth((user) => {
+      setIsAuthenticated(!!user);
+    });
+    return () => unsubscribe();
   }, [settings]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple hardcoded password for demonstration
-    if (password === 'admin123') {
-      setIsAuthenticated(true);
-    } else {
-      alert('Senha incorreta');
+    setError('');
+    try {
+      await login(email, password);
+      // Auth state listener will handle the rest
+    } catch (err) {
+      setError('Login falhou. Verifique e-mail e senha.');
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setPassword('');
+  const handleLogout = async () => {
+    await logout();
     setLocation('/');
   };
 
@@ -119,14 +127,25 @@ const AdminPage: React.FC<AdminPageProps> = ({
         <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
           <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">Área Administrativa</h2>
           <form onSubmit={handleLogin} className="space-y-4">
+            {error && <div className="text-red-500 text-sm text-center">{error}</div>}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Senha de Acesso</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                placeholder="admin@exemplo.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Senha</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="Digite a senha"
+                placeholder="Sua senha"
               />
             </div>
             <button
