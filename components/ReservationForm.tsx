@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { ApartmentId, Reservation, ApartmentSettings } from '../types';
-import { Calendar as CalendarIcon, User, FileText, CheckCircle, AlertCircle, Palette, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ApartmentId, Reservation, ApartmentSettings, User as UserType } from '../types';
+import { getUsers, saveUser } from '../services/storageService';
+import { Calendar as CalendarIcon, User, FileText, CheckCircle, AlertCircle, Palette, Mail, Plus } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 
 interface ReservationFormProps {
@@ -25,6 +26,9 @@ const COLORS = [
 
 const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit }) => {
   const [apartmentId, setApartmentId] = useState<ApartmentId>(ApartmentId.CARAGUA);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [isNewUser, setIsNewUser] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [email, setEmail] = useState('');
   const [color, setColor] = useState(COLORS[6]); // Default Blue
@@ -32,6 +36,28 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
   const [endDate, setEndDate] = useState('');
   const [notes, setNotes] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  useEffect(() => {
+    setUsers(getUsers());
+  }, []);
+
+  const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const userId = e.target.value;
+    setSelectedUserId(userId);
+    
+    if (userId === 'new') {
+      setIsNewUser(true);
+      setGuestName('');
+      setColor(COLORS[Math.floor(Math.random() * COLORS.length)]);
+    } else {
+      setIsNewUser(false);
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        setGuestName(user.name);
+        setColor(user.color);
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +71,17 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
     if (startDate > endDate) {
       setMessage({ type: 'error', text: 'A data de saída deve ser posterior à entrada.' });
       return;
+    }
+
+    // Save new user if applicable
+    if (isNewUser && guestName) {
+      const newUser: UserType = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: guestName,
+        color: color
+      };
+      saveUser(newUser);
+      setUsers(getUsers()); // Refresh list
     }
 
     const success = onSubmit({
@@ -128,16 +165,35 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Familiar</label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              required
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Ex: Primo André"
-              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-            />
+          <div className="space-y-3">
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <select
+                value={selectedUserId}
+                onChange={handleUserSelect}
+                className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white"
+              >
+                <option value="" disabled>Selecione quem está reservando</option>
+                {users.map(user => (
+                  <option key={user.id} value={user.id}>{user.name}</option>
+                ))}
+                <option value="new">+ Novo Familiar</option>
+              </select>
+            </div>
+
+            {isNewUser && (
+              <div className="animate-in fade-in slide-in-from-top-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Novo Familiar</label>
+                <input
+                  type="text"
+                  required
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Ex: Primo André"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -155,24 +211,26 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit })
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-            <Palette className="w-4 h-4 text-slate-400" />
-            Cor de Identificação
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${color === c ? 'border-slate-800 scale-110' : 'border-transparent'}`}
-                style={{ backgroundColor: c }}
-                aria-label={`Selecionar cor ${c}`}
-              />
-            ))}
+        {isNewUser && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+              <Palette className="w-4 h-4 text-slate-400" />
+              Escolha sua Cor (Será salva para próximas reservas)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${color === c ? 'border-slate-800 scale-110' : 'border-transparent'}`}
+                  style={{ backgroundColor: c }}
+                  aria-label={`Selecionar cor ${c}`}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>

@@ -1,7 +1,8 @@
-import { Reservation, ApartmentId, ApartmentSettings } from '../types';
+import { Reservation, ApartmentId, ApartmentSettings, User } from '../types';
 
 const STORAGE_KEY = 'family_beach_bookings_v2';
 const SETTINGS_KEY = 'family_beach_settings_v2';
+const USERS_KEY = 'family_beach_users_v2';
 
 export const getReservations = (): Reservation[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -76,6 +77,29 @@ export const getApartmentSettings = (): Record<ApartmentId, ApartmentSettings> =
 
 export const saveApartmentSettings = (settings: Record<ApartmentId, ApartmentSettings>) => {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+};
+
+export const getUsers = (): User[] => {
+  const stored = localStorage.getItem(USERS_KEY);
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored);
+  } catch (e) {
+    console.error("Failed to parse users", e);
+    return [];
+  }
+};
+
+export const saveUser = (user: User) => {
+  const current = getUsers();
+  const exists = current.find(u => u.name.toLowerCase() === user.name.toLowerCase());
+  
+  if (!exists) {
+    const updated = [...current, user];
+    localStorage.setItem(USERS_KEY, JSON.stringify(updated));
+    return user;
+  }
+  return exists;
 };
 
 // Seed some data if empty

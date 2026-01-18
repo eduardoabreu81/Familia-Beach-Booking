@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ApartmentId, ApartmentSettings, Reservation } from '../types';
-import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut } from 'lucide-react';
+import { ApartmentId, ApartmentSettings, Reservation, User } from '../types';
+import { getUsers, saveUser } from '../services/storageService';
+import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut, Users, Palette } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 interface AdminPageProps {
@@ -9,6 +10,11 @@ interface AdminPageProps {
   onUpdateSettings: (settings: Record<ApartmentId, ApartmentSettings>) => void;
   onDeleteReservation: (id: string) => void;
 }
+
+const COLORS = [
+  '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', 
+  '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'
+];
 
 const AdminPage: React.FC<AdminPageProps> = ({ 
   settings, 
@@ -19,12 +25,15 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [localSettings, setLocalSettings] = useState<Record<ApartmentId, ApartmentSettings>>(settings);
-  const [activeTab, setActiveTab] = useState<ApartmentId>(ApartmentId.CARAGUA);
+  const [activeTab, setActiveTab] = useState<ApartmentId | 'users'>(ApartmentId.CARAGUA);
+  const [users, setUsers] = useState<User[]>([]);
+  const [newUser, setNewUser] = useState({ name: '', color: COLORS[0] });
   const [, setLocation] = useLocation();
 
   // Sync local settings when props change
   useEffect(() => {
     setLocalSettings(settings);
+    setUsers(getUsers());
   }, [settings]);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -79,6 +88,29 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const handleSave = () => {
     onUpdateSettings(localSettings);
     alert('Configurações salvas com sucesso!');
+  };
+
+  const handleAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.name) return;
+    
+    const user: User = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newUser.name,
+      color: newUser.color
+    };
+    
+    saveUser(user);
+    setUsers(getUsers());
+    setNewUser({ name: '', color: COLORS[0] });
+  };
+
+  const handleDeleteUser = (id: string) => {
+    if (confirm('Tem certeza? Isso não apagará as reservas passadas.')) {
+      const updated = users.filter(u => u.id !== id);
+      localStorage.setItem('family_beach_users_v2', JSON.stringify(updated));
+      setUsers(updated);
+    }
   };
 
   if (!isAuthenticated) {
@@ -144,10 +176,10 @@ const AdminPage: React.FC<AdminPageProps> = ({
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
         
         {/* Tabs */}
-        <div className="flex gap-2 bg-white p-1 rounded-lg border border-slate-200 w-fit">
+        <div className="flex gap-2 bg-white p-1 rounded-lg border border-slate-200 w-fit overflow-x-auto">
           <button
             onClick={() => setActiveTab(ApartmentId.CARAGUA)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === ApartmentId.CARAGUA 
                 ? 'bg-blue-50 text-blue-700' 
                 : 'text-slate-600 hover:bg-slate-50'
@@ -157,7 +189,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
           </button>
           <button
             onClick={() => setActiveTab(ApartmentId.PRAIA_GRANDE)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === ApartmentId.PRAIA_GRANDE 
                 ? 'bg-blue-50 text-blue-700' 
                 : 'text-slate-600 hover:bg-slate-50'
@@ -165,8 +197,91 @@ const AdminPage: React.FC<AdminPageProps> = ({
           >
             {localSettings[ApartmentId.PRAIA_GRANDE].name}
           </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'users' 
+                ? 'bg-blue-50 text-blue-700' 
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Users className="w-4 h-4" /> Familiares
+          </button>
         </div>
 
+        {activeTab === 'users' ? (
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Add User Form */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 h-fit">
+              <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">
+                Adicionar Familiar
+              </h2>
+              <form onSubmit={handleAddUser} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nome</label>
+                  <input
+                    type="text"
+                    required
+                    value={newUser.name}
+                    onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Ex: Tia Maria"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Cor de Identificação</label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setNewUser({...newUser, color: c})}
+                        className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${newUser.color === c ? 'border-slate-800 scale-110' : 'border-transparent'}`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Cadastrar
+                </button>
+              </form>
+            </div>
+
+            {/* Users List */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4">
+                Familiares Cadastrados ({users.length})
+              </h2>
+              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                {users.map(user => (
+                  <div key={user.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: user.color }}>
+                        {user.name.charAt(0)}
+                      </div>
+                      <span className="font-medium text-slate-700">{user.name}</span>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {users.length === 0 && (
+                  <div className="text-center py-8 text-slate-400 text-sm">
+                    Nenhum familiar cadastrado ainda.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Settings Form */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
@@ -290,6 +405,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
             </div>
           </div>
         </div>
+        )}
       </main>
     </div>
   );

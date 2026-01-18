@@ -153,7 +153,7 @@ const App: React.FC = () => {
           </main>
 
           {/* Footer */}
-          <footer className="mt-20 py-8 text-center text-slate-400 text-sm border-t border-slate-200">
+          <footer className="mt-20 py-8 text-center text-slate-400 text-sm border-t border-slate-200 relative z-10 bg-slate-50">
             <p>&copy; {new Date().getFullYear()} Reserva Praia - Clã do Constantino. Aproveitem as férias!</p>
           </footer>
         </div>
