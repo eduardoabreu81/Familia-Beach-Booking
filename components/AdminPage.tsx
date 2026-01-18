@@ -315,16 +315,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Link do Google Maps</label>
-                <input
-                  type="text"
-                  value={localSettings[activeTab].mapLink || ''}
-                  onChange={(e) => handleSettingChange(activeTab, 'mapLink', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono"
-                  placeholder="https://maps.google.com/..."
-                />
-              </div>
+
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Regras e Alertas</label>

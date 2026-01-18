@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is admin (you can add custom claims or check a users collection)
+    // For this simple app, we'll assume any authenticated user is an admin/family member allowed to edit
+    // Or we can restrict to specific emails if needed.
+    function isAdmin() {
+      return isAuthenticated(); 
+    }
+
+    // Reservations:
+    // - Read: Public (so everyone can see availability)
+    // - Create: Public (or restricted to family code? For now, let's say public but validated)
+    // - Update/Delete: Only Admin
+    match /reservations/{reservationId} {
+      allow read: if true;
+      allow create: if true; // In a real app, you'd validate data here
+      allow update, delete: if isAdmin();
+    }
+
+    // Settings:
+    // - Read: Public
+    // - Write: Only Admin
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Users:
+    // - Read/Write: Only Admin
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

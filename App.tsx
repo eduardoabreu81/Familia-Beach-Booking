@@ -67,7 +67,7 @@ const App: React.FC = () => {
       </Route>
       
       <Route path="/">
-        <div className="min-h-screen bg-slate-50 pb-20 font-sans">
+        <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
           {/* Hero Header */}
           <header className="bg-slate-900 text-white pb-24 pt-10 px-4 sm:px-8 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
@@ -84,7 +84,7 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          <main className="max-w-6xl mx-auto px-4 sm:px-8 mt-8 space-y-8 relative z-20">
+          <main className="flex-grow max-w-6xl mx-auto px-4 sm:px-8 mt-8 space-y-8 relative z-20 w-full">
             
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-3 gap-8">
@@ -140,19 +140,15 @@ const App: React.FC = () => {
                       <MapPin className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                       <div>
                         <h4 className="font-semibold text-slate-800">Localização</h4>
-                        <p className="text-sm text-slate-500 mt-1 mb-2">
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings[activeTab].location)}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-slate-500 mt-1 mb-2 hover:text-blue-600 hover:underline block transition-colors"
+                          title="Clique para abrir no mapa"
+                        >
                           {settings[activeTab].location}
-                        </p>
-                        {settings[activeTab].mapLink && (
-                          <a 
-                            href={settings[activeTab].mapLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
-                          >
-                            Ver no Google Maps &rarr;
-                          </a>
-                        )}
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -163,7 +159,7 @@ const App: React.FC = () => {
           </main>
 
           {/* Footer */}
-          <footer className="mt-12 py-8 text-center text-slate-400 text-sm border-t border-slate-200 bg-slate-50">
+          <footer className="mt-auto py-8 text-center text-slate-400 text-sm border-t border-slate-200 bg-slate-50">
             <p>&copy; {new Date().getFullYear()} Reserva Praia - Clã do Constantino. Aproveitem as férias!</p>
           </footer>
         </div>
