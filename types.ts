@@ -21,10 +21,7 @@ export interface Reservation {
   notes?: string;
 }
 
-export interface ChatMessage {
-  role: 'user' | 'model';
-  text: string;
-}
+
 
 export interface DayCell {
   date: Date;

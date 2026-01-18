@@ -24,6 +24,43 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
+  // Helper to identify holidays
+  const getHoliday = (date: Date): string | null => {
+    const d = date.getDate();
+    const m = date.getMonth() + 1; // 1-12
+    const y = date.getFullYear();
+
+    // Fixed Holidays
+    if (d === 1 && m === 1) return 'Confraternização Universal';
+    if (d === 21 && m === 4) return 'Tiradentes';
+    if (d === 1 && m === 5) return 'Dia do Trabalho';
+    if (d === 7 && m === 9) return 'Independência';
+    if (d === 12 && m === 10) return 'N. Sra. Aparecida';
+    if (d === 2 && m === 11) return 'Finados';
+    if (d === 15 && m === 11) return 'Proc. da República';
+    if (d === 20 && m === 11) return 'Consciência Negra';
+    if (d === 25 && m === 12) return 'Natal';
+
+    // Movable Holidays (Manual map for 2025/2026 for reliability)
+    const dateStr = `${y}-${m}-${d}`;
+    const movable: Record<string, string> = {
+      // 2025
+      '2025-3-3': 'Carnaval',
+      '2025-3-4': 'Carnaval',
+      '2025-4-18': 'Paixão de Cristo',
+      '2025-4-20': 'Páscoa',
+      '2025-6-19': 'Corpus Christi',
+      // 2026
+      '2026-2-16': 'Carnaval',
+      '2026-2-17': 'Carnaval',
+      '2026-4-3': 'Paixão de Cristo',
+      '2026-4-5': 'Páscoa',
+      '2026-6-4': 'Corpus Christi'
+    };
+
+    return movable[dateStr] || null;
+  };
+
   const daysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
@@ -108,15 +145,23 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
           const todaysReservations = getDayReservations(date);
           const isToday = new Date().toDateString() === date.toDateString();
+          const holidayName = getHoliday(date);
 
           return (
             <div 
               key={date.toISOString()} 
               className={`h-24 sm:h-28 border-b border-r border-slate-100 p-1 flex flex-col items-start justify-start relative group transition-colors hover:bg-slate-50 ${isToday ? 'bg-blue-50/30' : ''}`}
             >
-              <span className={`text-xs font-medium p-1 rounded-full w-6 h-6 flex items-center justify-center mb-1 ${isToday ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>
-                {date.getDate()}
-              </span>
+              <div className="w-full flex justify-between items-start">
+                <span className={`text-xs font-medium p-1 rounded-full w-6 h-6 flex items-center justify-center mb-1 ${isToday ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>
+                  {date.getDate()}
+                </span>
+                {holidayName && (
+                  <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight text-right leading-3 max-w-[70%] mr-1">
+                    {holidayName}
+                  </span>
+                )}
+              </div>
               
               <div className="flex flex-col gap-1 w-full overflow-y-auto no-scrollbar">
                 {todaysReservations.map(res => (

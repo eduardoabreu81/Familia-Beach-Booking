@@ -171,10 +171,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                       </div>
                       <button 
                         onClick={() => onDeleteReservation(res.id)}
-                        className="p-2 text-red-500 hover:bg-red-100 rounded transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-semibold transition-colors"
                         title="Excluir Reserva"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
+                        Excluir
                       </button>
                     </div>
                   ))
