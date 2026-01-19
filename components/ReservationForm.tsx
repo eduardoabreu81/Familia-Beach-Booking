@@ -38,10 +38,6 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
   const [endDate, setEndDate] = useState('');
   const [notes, setNotes] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  
-  // Validações em tempo real
-  const [emailError, setEmailError] = useState<string>('');
-  const [dateError, setDateError] = useState<string>('');
 
   useEffect(() => {
     setUsers(getUsers());
@@ -69,35 +65,6 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
     }
   }, [initialData, users]);
 
-  // Validação de email em tempo real
-  useEffect(() => {
-    if (email && email.length > 0) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        setEmailError('Email inválido');
-      } else {
-        setEmailError('');
-      }
-    } else {
-      setEmailError('');
-    }
-  }, [email]);
-
-  // Validação de datas em tempo real
-  useEffect(() => {
-    if (startDate && endDate) {
-      if (startDate > endDate) {
-        setDateError('A data de saída deve ser posterior à entrada');
-      } else if (startDate === endDate) {
-        setDateError('As datas de entrada e saída não podem ser iguais');
-      } else {
-        setDateError('');
-      }
-    } else {
-      setDateError('');
-    }
-  }, [startDate, endDate]);
-
   const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const userId = e.target.value;
     setSelectedUserId(userId);
@@ -112,6 +79,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
       if (user) {
         setGuestName(user.name);
         setColor(user.color);
+        // Always update email, even if empty, to reflect the selected user's data
         setEmail(user.email || '');
       }
     }
@@ -128,16 +96,6 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
 
     if (startDate > endDate) {
       setMessage({ type: 'error', text: 'A data de saída deve ser posterior à entrada.' });
-      return;
-    }
-
-    if (startDate === endDate) {
-      setMessage({ type: 'error', text: 'As datas de entrada e saída não podem ser iguais.' });
-      return;
-    }
-
-    if (email && emailError) {
-      setMessage({ type: 'error', text: 'Corrija o email antes de continuar.' });
       return;
     }
 
@@ -175,6 +133,8 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
     if (success) {
       // Send email notification if email is provided
       if (email) {
+        // Note: These are placeholder IDs. You need to create an account at emailjs.com
+        // and replace these with your actual Service ID, Template ID, and Public Key.
         const templateParams = {
           to_email: email,
           guest_name: guestName,
@@ -183,6 +143,14 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
           end_date: new Date(endDate).toLocaleDateString('pt-BR'),
           notes: notes
         };
+
+        // Uncomment and configure to enable real emails
+        // emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams, 'YOUR_PUBLIC_KEY')
+        //   .then((response) => {
+        //      console.log('SUCCESS!', response.status, response.text);
+        //   }, (err) => {
+        //      console.log('FAILED...', err);
+        //   });
       }
 
       setMessage({ type: 'success', text: 'Reserva realizada com sucesso!' });
@@ -191,15 +159,14 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
       setStartDate('');
       setEndDate('');
       setNotes('');
-      setSelectedUserId('');
-      setIsNewUser(false);
+      // Keep apartment and color as is, or reset if preferred
     } else {
       setMessage({ type: 'error', text: 'Conflito de datas! Já existe uma reserva neste período para este apartamento.' });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-slate-200 hover:shadow-xl transition-shadow duration-300">
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-lg border border-slate-100">
       <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
         <CalendarIcon className="w-5 h-5 text-blue-600" />
         {initialData ? 'Editar Reserva' : 'Nova Reserva'}
@@ -212,20 +179,20 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
             <button
               type="button"
               onClick={() => setApartmentId(ApartmentId.CARAGUA)}
-              className={`p-3 rounded-lg border text-sm font-medium transition-all duration-200 text-center hover:scale-105
+              className={`p-3 rounded-lg border text-sm font-medium transition-all text-center
                 ${apartmentId === ApartmentId.CARAGUA
-                  ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-500 text-blue-700 ring-2 ring-blue-500 shadow-md' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'}`}
+                  ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500 shadow-sm' 
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
             >
               {settings[ApartmentId.CARAGUA].name}
             </button>
             <button
               type="button"
               onClick={() => setApartmentId(ApartmentId.PRAIA_GRANDE)}
-              className={`p-3 rounded-lg border text-sm font-medium transition-all duration-200 text-center hover:scale-105
+              className={`p-3 rounded-lg border text-sm font-medium transition-all text-center
                 ${apartmentId === ApartmentId.PRAIA_GRANDE
-                  ? 'bg-gradient-to-br from-cyan-50 to-teal-100 border-cyan-500 text-cyan-700 ring-2 ring-cyan-500 shadow-md' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'}`}
+                  ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500 shadow-sm' 
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
             >
               {settings[ApartmentId.PRAIA_GRANDE].name}
             </button>
@@ -240,7 +207,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
               <select
                 value={selectedUserId}
                 onChange={handleUserSelect}
-                className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white hover:border-slate-300"
+                className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white"
               >
                 <option value="" disabled>Selecione quem está reservando</option>
                 {users.map(user => (
@@ -251,7 +218,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
             </div>
 
             {isNewUser && (
-              <div className="animate-in fade-in slide-in-from-top-2 duration-300 p-3 bg-slate-50 rounded-lg border border-slate-100">
+              <div className="animate-in fade-in slide-in-from-top-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Novo Familiar</label>
                 <input
                   type="text"
@@ -275,25 +242,9 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Para receber confirmação"
-              className={`w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 outline-none transition-all ${
-                emailError 
-                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                  : email && !emailError
-                  ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
-                  : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
-          {emailError && (
-            <p className="mt-1 text-xs text-red-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-              <AlertCircle className="w-3 h-3" /> {emailError}
-            </p>
-          )}
-          {email && !emailError && (
-            <p className="mt-1 text-xs text-green-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-              <CheckCircle className="w-3 h-3" /> Email válido
-            </p>
-          )}
         </div>
 
         {isNewUser && (
@@ -308,7 +259,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-125 ${color === c ? 'border-slate-800 scale-125 shadow-lg' : 'border-transparent hover:border-slate-300'}`}
+                  className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${color === c ? 'border-slate-800 scale-110' : 'border-transparent'}`}
                   style={{ backgroundColor: c }}
                   aria-label={`Selecionar cor ${c}`}
                 />
@@ -325,11 +276,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
               required
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none transition-all ${
-                dateError && startDate
-                  ? 'border-red-300 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-blue-500'
-              }`}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
@@ -339,19 +286,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
               required
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none transition-all ${
-                dateError && endDate
-                  ? 'border-red-300 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-blue-500'
-              }`}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>
-        {dateError && (
-          <p className="text-xs text-red-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-            <AlertCircle className="w-3 h-3" /> {dateError}
-          </p>
-        )}
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Observações</label>
@@ -362,13 +300,13 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder="Algum aviso especial?"
-              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all"
+              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
             ></textarea>
           </div>
         </div>
 
         {message && (
-          <div className={`p-3 rounded-lg text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          <div className={`p-3 rounded-lg text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
             {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
             {message.text}
           </div>
@@ -379,15 +317,14 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
             <button
               type="button"
               onClick={onCancelEdit}
-              className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-all duration-200 hover:shadow-md"
+              className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-all"
             >
               Cancelar
             </button>
           )}
           <button
             type="submit"
-            disabled={!!emailError || !!dateError}
-            className="flex-1 py-3 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98]"
+            className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow-lg shadow-slate-200 transition-all active:scale-[0.98]"
           >
             {initialData ? 'Salvar Alterações' : 'Agendar Estadia'}
           </button>
