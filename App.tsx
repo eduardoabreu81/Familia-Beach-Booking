@@ -263,6 +263,7 @@ const App: React.FC = () => {
                     initialData={editingReservation}
                     onCancelEdit={() => setEditingReservation(null)}
                     selectedApartment={activeTab}
+                    onApartmentChange={setActiveTab}
                   />
                   
                   {/* Rules Card - Only Selected Apartment */}

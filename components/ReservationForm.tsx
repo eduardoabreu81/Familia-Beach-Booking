@@ -11,6 +11,7 @@ interface ReservationFormProps {
   initialData?: Reservation | null;
   onCancelEdit?: () => void;
   selectedApartment?: ApartmentId;
+  onApartmentChange?: (apartmentId: ApartmentId) => void;
 }
 
 const COLORS = [
@@ -28,7 +29,7 @@ const COLORS = [
   '#64748b'  // Slate
 ];
 
-const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, initialData, onCancelEdit, selectedApartment }) => {
+const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, initialData, onCancelEdit, selectedApartment, onApartmentChange }) => {
   const [apartmentId, setApartmentId] = useState<ApartmentId>(selectedApartment || ApartmentId.CARAGUA);
 
   // Sync with selectedApartment from tabs
@@ -180,7 +181,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setApartmentId(ApartmentId.CARAGUA)}
+              onClick={() => {
+                setApartmentId(ApartmentId.CARAGUA);
+                onApartmentChange?.(ApartmentId.CARAGUA);
+              }}
               className={`p-3 rounded-lg border text-sm font-medium transition-all text-center
                 ${apartmentId === ApartmentId.CARAGUA
                   ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500 shadow-sm' 
@@ -190,7 +194,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
             </button>
             <button
               type="button"
-              onClick={() => setApartmentId(ApartmentId.PRAIA_GRANDE)}
+              onClick={() => {
+                setApartmentId(ApartmentId.PRAIA_GRANDE);
+                onApartmentChange?.(ApartmentId.PRAIA_GRANDE);
+              }}
               className={`p-3 rounded-lg border text-sm font-medium transition-all text-center
                 ${apartmentId === ApartmentId.PRAIA_GRANDE
                   ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500 shadow-sm' 

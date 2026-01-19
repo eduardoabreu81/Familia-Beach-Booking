@@ -136,35 +136,57 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       <div className="flex border-b border-slate-200">
         <button
           onClick={() => onTabChange(ApartmentId.CARAGUA)}
-          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-colors relative
-            ${activeTab === ApartmentId.CARAGUA ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:bg-slate-50'}`}
+          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-all duration-300 relative
+            ${activeTab === ApartmentId.CARAGUA ? 'text-blue-700 bg-blue-50 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
         >
           {settings[ApartmentId.CARAGUA].name}
-          {activeTab === ApartmentId.CARAGUA && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>}
+          {activeTab === ApartmentId.CARAGUA && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg"></div>}
         </button>
         <div className="w-px bg-slate-200"></div>
         <button
           onClick={() => onTabChange(ApartmentId.PRAIA_GRANDE)}
-          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-colors relative
-            ${activeTab === ApartmentId.PRAIA_GRANDE ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:bg-slate-50'}`}
+          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-all duration-300 relative
+            ${activeTab === ApartmentId.PRAIA_GRANDE ? 'text-cyan-700 bg-cyan-50 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
         >
           {settings[ApartmentId.PRAIA_GRANDE].name}
-          {activeTab === ApartmentId.PRAIA_GRANDE && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>}
+          {activeTab === ApartmentId.PRAIA_GRANDE && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-teal-600 shadow-lg"></div>}
         </button>
       </div>
 
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-slate-100">
-        <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-slate-400" />
+      <div className={`flex items-center justify-between p-4 border-b transition-all duration-300 ${
+        activeTab === ApartmentId.CARAGUA 
+          ? 'bg-gradient-to-r from-blue-50 to-blue-100/50 border-blue-200' 
+          : 'bg-gradient-to-r from-cyan-50 to-teal-100/50 border-cyan-200'
+      }`}>
+        <h2 className={`text-lg font-bold flex items-center gap-2 transition-colors duration-300 ${
+          activeTab === ApartmentId.CARAGUA ? 'text-blue-800' : 'text-cyan-800'
+        }`}>
+          <Calendar className={`w-5 h-5 transition-colors duration-300 ${
+            activeTab === ApartmentId.CARAGUA ? 'text-blue-600' : 'text-cyan-600'
+          }`} />
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div className="flex gap-2">
-          <button onClick={onPrevMonth} className="p-2 hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
-            <ChevronLeft className="w-4 h-4 text-slate-600" />
+          <button 
+            onClick={onPrevMonth} 
+            className={`p-2 rounded-full transition-all duration-300 ${
+              activeTab === ApartmentId.CARAGUA
+                ? 'hover:bg-blue-200 border-2 border-blue-300 text-blue-700'
+                : 'hover:bg-cyan-200 border-2 border-cyan-300 text-cyan-700'
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
           </button>
-          <button onClick={onNextMonth} className="p-2 hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
-            <ChevronRight className="w-4 h-4 text-slate-600" />
+          <button 
+            onClick={onNextMonth} 
+            className={`p-2 rounded-full transition-all duration-300 ${
+              activeTab === ApartmentId.CARAGUA
+                ? 'hover:bg-blue-200 border-2 border-blue-300 text-blue-700'
+                : 'hover:bg-cyan-200 border-2 border-cyan-300 text-cyan-700'
+            }`}
+          >
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
