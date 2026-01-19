@@ -14,6 +14,26 @@ interface BookingCalendarProps {
   onDeleteReservation?: (id: string) => void;
 }
 
+// Temas de cores por apartamento
+const apartmentThemes = {
+  [ApartmentId.CARAGUA]: {
+    primary: 'blue-600',
+    secondary: 'blue-50',
+    hover: 'blue-100',
+    border: 'blue-600',
+    gradient: 'from-blue-500 to-blue-600',
+    tabBg: 'bg-gradient-to-r from-blue-50 to-blue-100'
+  },
+  [ApartmentId.PRAIA_GRANDE]: {
+    primary: 'cyan-600',
+    secondary: 'cyan-50',
+    hover: 'cyan-100',
+    border: 'cyan-600',
+    gradient: 'from-cyan-500 to-teal-600',
+    tabBg: 'bg-gradient-to-r from-cyan-50 to-teal-100'
+  }
+};
+
 const BookingCalendar: React.FC<BookingCalendarProps> = ({ 
   reservations, 
   settings,
@@ -27,6 +47,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 }) => {
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [popupPosition, setPopupPosition] = useState<{x: number, y: number} | null>(null);
+
+  const theme = apartmentThemes[activeTab];
 
   const handleReservationClick = (e: React.MouseEvent, res: Reservation) => {
     e.stopPropagation();
@@ -110,48 +132,62 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const activeSettings = settings[activeTab];
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden flex flex-col h-full">
-      {/* Tabs */}
+    <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col h-full transition-all duration-500">
+      {/* Tabs with Dynamic Colors */}
       <div className="flex border-b border-slate-200">
         <button
           onClick={() => onTabChange(ApartmentId.CARAGUA)}
-          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-colors relative
-            ${activeTab === ApartmentId.CARAGUA ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:bg-slate-50'}`}
+          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-all duration-300 relative
+            ${activeTab === ApartmentId.CARAGUA 
+              ? `text-blue-700 ${apartmentThemes[ApartmentId.CARAGUA].tabBg} shadow-inner` 
+              : 'text-slate-500 hover:bg-slate-50'}`}
         >
           {settings[ApartmentId.CARAGUA].name}
-          {activeTab === ApartmentId.CARAGUA && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>}
+          {activeTab === ApartmentId.CARAGUA && (
+            <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r ${apartmentThemes[ApartmentId.CARAGUA].gradient} animate-in slide-in-from-left duration-300`}></div>
+          )}
         </button>
         <div className="w-px bg-slate-200"></div>
         <button
           onClick={() => onTabChange(ApartmentId.PRAIA_GRANDE)}
-          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-colors relative
-            ${activeTab === ApartmentId.PRAIA_GRANDE ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:bg-slate-50'}`}
+          className={`flex-1 py-4 text-sm sm:text-base font-medium transition-all duration-300 relative
+            ${activeTab === ApartmentId.PRAIA_GRANDE 
+              ? `text-cyan-700 ${apartmentThemes[ApartmentId.PRAIA_GRANDE].tabBg} shadow-inner` 
+              : 'text-slate-500 hover:bg-slate-50'}`}
         >
           {settings[ApartmentId.PRAIA_GRANDE].name}
-          {activeTab === ApartmentId.PRAIA_GRANDE && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>}
+          {activeTab === ApartmentId.PRAIA_GRANDE && (
+            <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r ${apartmentThemes[ApartmentId.PRAIA_GRANDE].gradient} animate-in slide-in-from-right duration-300`}></div>
+          )}
         </button>
       </div>
 
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-slate-100">
-        <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-slate-400" />
+      {/* Calendar Header with Theme Color */}
+      <div className={`flex items-center justify-between p-4 bg-gradient-to-r ${theme.gradient} text-white border-b border-white/20`}>
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Calendar className="w-5 h-5" />
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div className="flex gap-2">
-          <button onClick={onPrevMonth} className="p-2 hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
-            <ChevronLeft className="w-4 h-4 text-slate-600" />
+          <button 
+            onClick={onPrevMonth} 
+            className="p-2 hover:bg-white/20 rounded-full transition-all duration-200 border border-white/30 hover:scale-110"
+          >
+            <ChevronLeft className="w-4 h-4" />
           </button>
-          <button onClick={onNextMonth} className="p-2 hover:bg-slate-100 rounded-full transition-colors border border-slate-200">
-            <ChevronRight className="w-4 h-4 text-slate-600" />
+          <button 
+            onClick={onNextMonth} 
+            className="p-2 hover:bg-white/20 rounded-full transition-all duration-200 border border-white/30 hover:scale-110"
+          >
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* Days Header */}
-      <div className="grid grid-cols-7 text-center bg-slate-50/50 border-b border-slate-200">
+      <div className={`grid grid-cols-7 text-center ${theme.secondary} border-b border-slate-200`}>
         {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-          <div key={day} className="py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <div key={day} className="py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
             {day}
           </div>
         ))}
@@ -161,7 +197,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       <div className="grid grid-cols-7 auto-rows-fr flex-grow">
         {calendarDays.map((date, idx) => {
           if (!date) {
-            return <div key={`empty-${idx}`} className="h-24 sm:h-28 bg-slate-50/20 border-b border-r border-slate-100"></div>;
+            return <div key={`empty-${idx}`} className="h-24 sm:h-28 bg-slate-50/50 border-b border-r border-slate-100"></div>;
           }
 
           const todaysReservations = getDayReservations(date);
@@ -171,10 +207,10 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           return (
             <div 
               key={date.toISOString()} 
-              className={`h-24 sm:h-28 border-b border-r border-slate-100 p-1 flex flex-col items-start justify-start relative group transition-colors hover:bg-slate-50 ${isToday ? 'bg-blue-50/30' : ''}`}
+              className={`h-24 sm:h-28 border-b border-r border-slate-100 p-1 flex flex-col items-start justify-start relative group transition-all duration-200 hover:bg-${theme.secondary} hover:shadow-inner ${isToday ? `bg-${theme.secondary} ring-2 ring-${theme.primary} ring-inset` : ''}`}
             >
               <div className="w-full flex justify-between items-start">
-                <span className={`text-xs font-medium p-1 rounded-full w-6 h-6 flex items-center justify-center mb-1 ${isToday ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>
+                <span className={`text-xs font-medium p-1 rounded-full w-6 h-6 flex items-center justify-center mb-1 transition-all duration-200 ${isToday ? `bg-gradient-to-br ${theme.gradient} text-white shadow-md` : 'text-slate-500 group-hover:bg-slate-100'}`}>
                   {date.getDate()}
                 </span>
                 {holidayName && (
@@ -189,7 +225,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   <div 
                     key={res.id} 
                     onClick={(e) => handleReservationClick(e, res)}
-                    className="text-[10px] sm:text-xs px-1.5 py-1 rounded text-white shadow-sm truncate w-full cursor-pointer hover:opacity-90 transition-opacity"
+                    className="text-[10px] sm:text-xs px-1.5 py-1 rounded text-white shadow-sm truncate w-full cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-200"
                     style={{ backgroundColor: res.color }}
                     title={`${res.guestName}`}
                   >
@@ -202,50 +238,64 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
         })}
       </div>
       
-      {/* Legend / Info Footer */}
-      <div className="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
-        <span>Mostrando: <strong>{activeSettings.name}</strong></span>
+      {/* Legend / Info Footer with Theme */}
+      <div className={`p-3 bg-${theme.secondary} border-t border-slate-200 text-xs text-slate-600 flex justify-between items-center`}>
+        <span>Mostrando: <strong className={`text-${theme.primary}`}>{activeSettings.name}</strong></span>
         <span>{activeSettings.location}</span>
       </div>
 
-      {/* Reservation Popup */}
+      {/* Reservation Popup - Enhanced */}
       {selectedReservation && popupPosition && (
         <>
-          <div className="fixed inset-0 z-40" onClick={closePopup}></div>
+          <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200" onClick={closePopup}></div>
           <div 
-            className="absolute z-50 bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-72 animate-in fade-in zoom-in-95 duration-200"
+            className="absolute z-50 bg-white rounded-xl shadow-2xl border-2 border-slate-200 p-5 w-80 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-300"
             style={{ 
-              top: Math.min(popupPosition.y, window.innerHeight + window.scrollY - 250), // Prevent going off bottom
-              left: Math.min(popupPosition.x, window.innerWidth - 300) // Prevent going off right
+              top: Math.min(popupPosition.y, window.innerHeight + window.scrollY - 280),
+              left: Math.min(popupPosition.x, window.innerWidth - 340)
             }}
           >
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-slate-800 text-lg">{selectedReservation.guestName}</h3>
-              <button onClick={closePopup} className="text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-slate-800 text-xl">{selectedReservation.guestName}</h3>
+                <span className="text-xs text-slate-500 font-medium">{settings[selectedReservation.apartmentId].name}</span>
+              </div>
+              <button 
+                onClick={closePopup} 
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full p-1 transition-colors"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="space-y-2 text-sm text-slate-600 mb-4">
-              <p><span className="font-medium">Entrada:</span> {new Date(selectedReservation.startDate).toLocaleDateString('pt-BR')}</p>
-              <p><span className="font-medium">Saída:</span> {new Date(selectedReservation.endDate).toLocaleDateString('pt-BR')}</p>
+            <div className="space-y-3 text-sm text-slate-700 mb-5">
+              <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg">
+                <span className="font-semibold text-slate-800">Entrada:</span>
+                <span>{new Date(selectedReservation.startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg">
+                <span className="font-semibold text-slate-800">Saída:</span>
+                <span>{new Date(selectedReservation.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+              </div>
               {selectedReservation.notes && (
-                <p className="bg-slate-50 p-2 rounded border border-slate-100 italic text-xs">
-                  "{selectedReservation.notes}"
-                </p>
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                  <p className="text-amber-900 italic text-xs leading-relaxed">
+                    "{selectedReservation.notes}"
+                  </p>
+                </div>
               )}
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-100">
+            <div className="flex gap-2 pt-3 border-t border-slate-200">
               {onEditReservation && (
                 <button 
                   onClick={() => {
                     onEditReservation(selectedReservation);
                     closePopup();
                   }}
-                  className="flex-1 flex items-center justify-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  className={`flex-1 flex items-center justify-center gap-2 bg-${theme.secondary} text-${theme.primary} hover:bg-${theme.hover} py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md`}
                 >
-                  <Edit2 className="w-3 h-3" /> Editar
+                  <Edit2 className="w-4 h-4" /> Editar
                 </button>
               )}
               {onDeleteReservation && (
@@ -254,9 +304,9 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                     onDeleteReservation(selectedReservation.id);
                     closePopup();
                   }}
-                  className="flex-1 flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md"
                 >
-                  <Trash2 className="w-3 h-3" /> Excluir
+                  <Trash2 className="w-4 h-4" /> Excluir
                 </button>
               )}
             </div>

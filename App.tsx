@@ -94,6 +94,22 @@ const App: React.FC = () => {
 
   if (!settings) return null; // Loading state
 
+  // Cores dinâmicas por apartamento
+  const apartmentTheme = {
+    [ApartmentId.CARAGUA]: {
+      gradient: 'from-blue-900 via-blue-800 to-slate-900',
+      accentColor: 'emerald-400',
+      bgOverlay: 'bg-blue-900/10'
+    },
+    [ApartmentId.PRAIA_GRANDE]: {
+      gradient: 'from-cyan-900 via-teal-800 to-slate-900',
+      accentColor: 'amber-400',
+      bgOverlay: 'bg-cyan-900/10'
+    }
+  };
+
+  const currentTheme = apartmentTheme[activeTab];
+
   return (
     <Switch>
       <Route path="/admin">
@@ -106,24 +122,38 @@ const App: React.FC = () => {
       </Route>
       
       <Route path="/">
-        <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-          {/* Hero Header */}
-          <header className="bg-slate-900 text-white pb-24 pt-10 px-4 sm:px-8 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-50 font-sans flex flex-col relative">
+          {/* Background Image - Dynamic */}
+          <div 
+            key={activeTab}
+            className="fixed inset-0 z-0 transition-opacity duration-700 animate-in fade-in"
+            style={{
+              backgroundImage: `url('${settings[activeTab].photoUrl}')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundAttachment: 'fixed'
+            }}
+          >
+            <div className={`absolute inset-0 ${currentTheme.bgOverlay} backdrop-blur-sm`}></div>
+          </div>
+
+          {/* Hero Header with Gradient */}
+          <header className={`bg-gradient-to-r ${currentTheme.gradient} text-white pb-24 pt-10 px-4 sm:px-8 relative overflow-hidden z-10 transition-all duration-500`}>
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-3 tracking-tight">
-                  <Palmtree className="w-10 h-10 text-emerald-400" />
+                  <Palmtree className={`w-10 h-10 text-${currentTheme.accentColor} animate-in slide-in-from-left duration-500`} />
                   Reserva Praia - Clã do Constantino
                 </h1>
-                <p className="mt-2 text-slate-400 text-lg">
+                <p className="mt-2 text-slate-300 text-lg">
                   Agendamento de estadias para {settings[ApartmentId.CARAGUA].name} e {settings[ApartmentId.PRAIA_GRANDE].name}.
                 </p>
               </div>
               
               <button
                 onClick={() => setIsSummaryOpen(true)}
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg backdrop-blur-sm transition-colors flex items-center gap-2 font-medium border border-white/10"
+                className="bg-white/10 hover:bg-white/20 hover:scale-105 text-white px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-300 flex items-center gap-2 font-medium border border-white/20 shadow-lg hover:shadow-xl"
               >
                 <List className="w-5 h-5" />
                 Ver Lista de Reservas
@@ -153,7 +183,7 @@ const App: React.FC = () => {
                 {/* Rules Cards (Side by Side) */}
                 <div className="grid sm:grid-cols-2 gap-4">
                    {[ApartmentId.CARAGUA, ApartmentId.PRAIA_GRANDE].map(aptId => (
-                     <div key={aptId} className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                     <div key={aptId} className="bg-white/95 backdrop-blur-sm p-5 rounded-xl shadow-lg border border-slate-200 hover:shadow-xl transition-shadow duration-300">
                         <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
                           <Info className="w-4 h-4 text-blue-500" /> {settings[aptId].name}
                         </h3>
@@ -177,15 +207,15 @@ const App: React.FC = () => {
                 />
                 
                 {/* Mini Location Card - Dynamic */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200 overflow-hidden group hover:shadow-xl transition-shadow duration-300">
                   <div className="h-48 overflow-hidden relative">
                      <img 
                       key={activeTab}
                       src={settings[activeTab].photoUrl}
                       alt={settings[activeTab].name}
-                      className="w-full h-full object-cover transition-opacity duration-500 animate-in fade-in"
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 animate-in fade-in"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-4">
                       <h3 className="text-white font-bold text-lg shadow-sm">{settings[activeTab].name}</h3>
                     </div>
                   </div>
@@ -213,7 +243,7 @@ const App: React.FC = () => {
           </main>
 
           {/* Footer */}
-          <footer className="mt-auto py-8 text-center text-slate-400 text-sm border-t border-slate-200 bg-slate-50">
+          <footer className="mt-auto py-8 text-center text-slate-600 text-sm border-t border-slate-300 bg-white/80 backdrop-blur-sm relative z-10">
             <p>&copy; {new Date().getFullYear()} Reserva Praia - Clã do Constantino. Aproveitem as férias!</p>
           </footer>
 
