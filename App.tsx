@@ -126,45 +126,76 @@ const App: React.FC = () => {
           </div>
 
           {/* Hero Header with Gradient and Mascot */}
-          <header className={`bg-gradient-to-r ${currentTheme.gradient} text-white pb-24 pt-10 px-4 sm:px-8 relative overflow-hidden z-10 transition-all duration-500`}>
+          <header className={`bg-gradient-to-r ${currentTheme.gradient} text-white pb-20 pt-10 px-4 sm:px-8 relative overflow-hidden z-10 transition-all duration-500`}>
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             
-            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-              {/* Mascote */}
-              <div className="absolute -left-4 top-1/2 -translate-y-1/2 hidden lg:block animate-in slide-in-from-left duration-700">
-                <img 
-                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
-                  alt="Mascote Reserva Praia" 
-                  className="w-32 h-32 object-contain drop-shadow-2xl hover:scale-110 transition-transform duration-300"
-                />
+            <div className="max-w-6xl mx-auto relative z-10">
+              {/* Desktop Layout */}
+              <div className="hidden md:flex items-center justify-between gap-6">
+                {/* Mascote Desktop - Lado Esquerdo */}
+                <div className="flex-shrink-0 animate-in slide-in-from-left duration-700">
+                  <img 
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
+                    alt="Mascote Reserva Praia" 
+                    className="w-32 h-32 object-contain drop-shadow-2xl hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+
+                {/* Título e Descrição Desktop */}
+                <div className="flex-1 text-center">
+                  <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center gap-3 tracking-tight">
+                    <Palmtree className={`w-10 h-10 text-${currentTheme.accentColor}`} />
+                    Reserva Praia - Clã do Constantino
+                  </h1>
+                  <p className="mt-2 text-slate-300 text-lg">
+                    Agendamento de estadias para {settings[ApartmentId.CARAGUA].name} e {settings[ApartmentId.PRAIA_GRANDE].name}.
+                  </p>
+                </div>
+                
+                {/* Botão Desktop */}
+                <button
+                  onClick={() => setIsSummaryOpen(true)}
+                  className="flex-shrink-0 bg-white/10 hover:bg-white/20 hover:scale-105 text-white px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-300 flex items-center gap-2 font-medium border border-white/20 shadow-lg hover:shadow-xl"
+                >
+                  <List className="w-5 h-5" />
+                  Ver Lista
+                </button>
               </div>
 
-              <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center md:justify-start gap-3 tracking-tight">
-                  <Palmtree className={`w-10 h-10 text-${currentTheme.accentColor} animate-in slide-in-from-left duration-500`} />
-                  Reserva Praia - Clã do Constantino
-                </h1>
-                <p className="mt-2 text-slate-300 text-lg">
-                  Agendamento de estadias para {settings[ApartmentId.CARAGUA].name} e {settings[ApartmentId.PRAIA_GRANDE].name}.
-                </p>
-              </div>
-              
-              <button
-                onClick={() => setIsSummaryOpen(true)}
-                className="bg-white/10 hover:bg-white/20 hover:scale-105 text-white px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-300 flex items-center gap-2 font-medium border border-white/20 shadow-lg hover:shadow-xl"
-              >
-                <List className="w-5 h-5" />
-                Ver Lista de Reservas
-              </button>
-            </div>
+              {/* Mobile Layout */}
+              <div className="md:hidden flex flex-col items-center gap-4">
+                {/* Título Mobile - 2 Linhas */}
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold flex items-center justify-center gap-2 tracking-tight">
+                    <Palmtree className={`w-8 h-8 text-${currentTheme.accentColor}`} />
+                    Reserva Praia
+                  </h1>
+                  <h2 className="text-xl font-bold mt-1">
+                    Clã do Constantino
+                  </h2>
+                  <p className="mt-2 text-slate-300 text-sm">
+                    Agendamento de estadias
+                  </p>
+                </div>
 
-            {/* Mascote Mobile - Abaixo do título */}
-            <div className="lg:hidden flex justify-center mt-6 animate-in fade-in duration-500">
-              <img 
-                src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
-                alt="Mascote Reserva Praia" 
-                className="w-24 h-24 object-contain drop-shadow-2xl"
-              />
+                {/* Mascote Mobile - Maior e Mais Próximo */}
+                <div className="animate-in fade-in duration-500 -mt-2">
+                  <img 
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
+                    alt="Mascote Reserva Praia" 
+                    className="w-36 h-36 object-contain drop-shadow-2xl"
+                  />
+                </div>
+
+                {/* Botão Mobile */}
+                <button
+                  onClick={() => setIsSummaryOpen(true)}
+                  className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-300 flex items-center gap-2 font-medium border border-white/20 shadow-lg text-sm"
+                >
+                  <List className="w-4 h-4" />
+                  Ver Lista de Reservas
+                </button>
+              </div>
             </div>
           </header>
 
