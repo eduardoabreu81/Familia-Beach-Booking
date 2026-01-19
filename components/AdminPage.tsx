@@ -380,7 +380,16 @@ const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               </div>
 
-
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Localização / Endereço</label>
+                <input
+                  type="text"
+                  value={localSettings[activeTab].location}
+                  onChange={(e) => handleSettingChange(activeTab, 'location', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Ex: Rua das Flores, 123 - Caraguatatuba, SP"
+                />
+              </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Regras e Alertas</label>

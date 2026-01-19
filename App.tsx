@@ -36,8 +36,6 @@ const App: React.FC = () => {
   const handleNewReservation = async (resData: Omit<Reservation, 'id'>) => {
     try {
       if (editingReservation) {
-        // If editing, we delete the old one and create a new one (simplest way to handle date conflicts check)
-        // In a real app, we might want an update function, but saveReservation handles ID check
         await deleteReservation(editingReservation.id);
       }
 
@@ -45,19 +43,10 @@ const App: React.FC = () => {
       
       if (success) {
         if (settings) {
-          // Send confirmation email
           const apartmentName = settings[resData.apartmentId].name;
           sendConfirmationEmail(resData, apartmentName);
         }
-        setEditingReservation(null); // Clear editing state
-      } else if (editingReservation) {
-        // If failed (e.g. conflict), restore the old one if we deleted it? 
-        // Actually saveReservation checks conflicts BEFORE saving. 
-        // But we deleted it above. This is risky. 
-        // Better approach: Check conflict first, then update.
-        // For now, let's assume saveReservation handles it.
-        // Wait, if we delete first, then saveReservation won't see conflict with itself.
-        // Correct.
+        setEditingReservation(null);
       }
       return success;
     } catch (error) {
@@ -80,7 +69,6 @@ const App: React.FC = () => {
 
   const handleEditReservation = (res: Reservation) => {
     setEditingReservation(res);
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -92,7 +80,7 @@ const App: React.FC = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-  if (!settings) return null; // Loading state
+  if (!settings) return null;
 
   // Cores dinâmicas por apartamento
   const apartmentTheme = {
@@ -137,12 +125,22 @@ const App: React.FC = () => {
             <div className={`absolute inset-0 ${currentTheme.bgOverlay} backdrop-blur-sm`}></div>
           </div>
 
-          {/* Hero Header with Gradient */}
+          {/* Hero Header with Gradient and Mascot */}
           <header className={`bg-gradient-to-r ${currentTheme.gradient} text-white pb-24 pt-10 px-4 sm:px-8 relative overflow-hidden z-10 transition-all duration-500`}>
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+            
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-3 tracking-tight">
+              {/* Mascote */}
+              <div className="absolute -left-4 top-1/2 -translate-y-1/2 hidden lg:block animate-in slide-in-from-left duration-700">
+                <img 
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
+                  alt="Mascote Reserva Praia" 
+                  className="w-32 h-32 object-contain drop-shadow-2xl hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+
+              <div className="flex-1 text-center md:text-left">
+                <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center md:justify-start gap-3 tracking-tight">
                   <Palmtree className={`w-10 h-10 text-${currentTheme.accentColor} animate-in slide-in-from-left duration-500`} />
                   Reserva Praia - Clã do Constantino
                 </h1>
@@ -159,6 +157,15 @@ const App: React.FC = () => {
                 Ver Lista de Reservas
               </button>
             </div>
+
+            {/* Mascote Mobile - Abaixo do título */}
+            <div className="lg:hidden flex justify-center mt-6 animate-in fade-in duration-500">
+              <img 
+                src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
+                alt="Mascote Reserva Praia" 
+                className="w-24 h-24 object-contain drop-shadow-2xl"
+              />
+            </div>
           </header>
 
           <main className="flex-grow max-w-6xl mx-auto px-4 sm:px-8 mt-8 mb-12 space-y-8 relative z-20 w-full">
@@ -167,7 +174,7 @@ const App: React.FC = () => {
             <div className="grid lg:grid-cols-3 gap-8">
               
               {/* Left Column: Calendar (Span 2) */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2">
                 <BookingCalendar 
                   reservations={reservations}
                   settings={settings}
@@ -179,22 +186,6 @@ const App: React.FC = () => {
                   onEditReservation={handleEditReservation}
                   onDeleteReservation={handleDeleteReservation}
                 />
-                
-                {/* Rules Cards (Side by Side) */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                   {[ApartmentId.CARAGUA, ApartmentId.PRAIA_GRANDE].map(aptId => (
-                     <div key={aptId} className="bg-white/95 backdrop-blur-sm p-5 rounded-xl shadow-lg border border-slate-200 hover:shadow-xl transition-shadow duration-300">
-                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                          <Info className="w-4 h-4 text-blue-500" /> {settings[aptId].name}
-                        </h3>
-                        <ul className="list-disc list-inside text-slate-600 text-sm space-y-1">
-                          {settings[aptId].rules.map((rule, idx) => (
-                            <li key={idx}>{rule}</li>
-                          ))}
-                        </ul>
-                     </div>
-                   ))}
-                </div>
               </div>
 
               {/* Right Column: Booking Form & Info */}
@@ -205,6 +196,18 @@ const App: React.FC = () => {
                   initialData={editingReservation}
                   onCancelEdit={() => setEditingReservation(null)}
                 />
+                
+                {/* Rules Card - Only Selected Apartment */}
+                <div className="bg-white/95 backdrop-blur-sm p-5 rounded-xl shadow-lg border border-slate-200 hover:shadow-xl transition-shadow duration-300">
+                  <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                    <Info className="w-4 h-4 text-blue-500" /> Regras - {settings[activeTab].name}
+                  </h3>
+                  <ul className="list-disc list-inside text-slate-600 text-sm space-y-1">
+                    {settings[activeTab].rules.map((rule, idx) => (
+                      <li key={idx}>{rule}</li>
+                    ))}
+                  </ul>
+                </div>
                 
                 {/* Mini Location Card - Dynamic */}
                 <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200 overflow-hidden group hover:shadow-xl transition-shadow duration-300">
