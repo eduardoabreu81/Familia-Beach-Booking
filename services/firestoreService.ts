@@ -167,3 +167,54 @@ export const updateUser = async (id: string, user: Partial<User>) => {
 export const deleteUser = async (id: string) => {
   await deleteDoc(doc(db, USERS_COLLECTION, id));
 };
+
+
+// ============================================
+// DATE BLOCKS (Bloqueios de Datas)
+// ============================================
+
+const BLOCKS_COLLECTION = 'date_blocks';
+
+export interface DateBlock {
+  id: string;
+  apartmentId: ApartmentId;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  createdAt: string;
+}
+
+const convertDateBlock = (doc: any): DateBlock => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+  } as DateBlock;
+};
+
+export const subscribeToDateBlocks = (callback: (blocks: DateBlock[]) => void) => {
+  const q = query(collection(db, BLOCKS_COLLECTION));
+  return onSnapshot(q, (snapshot) => {
+    const blocks = snapshot.docs.map(convertDateBlock);
+    callback(blocks);
+  });
+};
+
+export const getDateBlocks = async (): Promise<DateBlock[]> => {
+  const querySnapshot = await getDocs(collection(db, BLOCKS_COLLECTION));
+  return querySnapshot.docs.map(convertDateBlock);
+};
+
+export const saveDateBlock = async (block: Omit<DateBlock, 'id'>): Promise<boolean> => {
+  try {
+    await addDoc(collection(db, BLOCKS_COLLECTION), block);
+    return true;
+  } catch (error) {
+    console.error('Error saving date block:', error);
+    return false;
+  }
+};
+
+export const deleteDateBlock = async (id: string): Promise<void> => {
+  await deleteDoc(doc(db, BLOCKS_COLLECTION, id));
+};

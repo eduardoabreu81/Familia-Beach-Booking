@@ -10,6 +10,7 @@ interface ReservationFormProps {
   onSubmit: (res: Omit<Reservation, 'id'>) => Promise<boolean>;
   initialData?: Reservation | null;
   onCancelEdit?: () => void;
+  selectedApartment?: ApartmentId;
 }
 
 const COLORS = [
@@ -27,8 +28,15 @@ const COLORS = [
   '#64748b'  // Slate
 ];
 
-const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, initialData, onCancelEdit }) => {
-  const [apartmentId, setApartmentId] = useState<ApartmentId>(ApartmentId.CARAGUA);
+const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, initialData, onCancelEdit, selectedApartment }) => {
+  const [apartmentId, setApartmentId] = useState<ApartmentId>(selectedApartment || ApartmentId.CARAGUA);
+
+  // Sync with selectedApartment from tabs
+  useEffect(() => {
+    if (selectedApartment && !initialData) {
+      setApartmentId(selectedApartment);
+    }
+  }, [selectedApartment, initialData]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [isNewUser, setIsNewUser] = useState(false);

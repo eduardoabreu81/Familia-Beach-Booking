@@ -165,24 +165,27 @@ const App: React.FC = () => {
               <div className="max-w-6xl mx-auto relative z-10">
                 {/* Desktop Layout */}
                 <div className="hidden md:flex items-center justify-between gap-6">
-                  {/* Mascote Desktop - Lado Esquerdo */}
-                  <div className="flex-shrink-0 animate-in slide-in-from-left duration-700">
-                    <img 
-                      src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
-                      alt="Mascote Reserva Praia" 
-                      className="w-32 h-32 object-contain drop-shadow-2xl hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-
-                  {/* Título e Descrição Desktop */}
-                  <div className="flex-1 text-center">
-                    <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center gap-3 tracking-tight">
-                      <Palmtree className={`w-10 h-10 text-${currentTheme.accentColor}`} />
-                      Reserva Praia - Clã do Constantino
-                    </h1>
-                    <p className="mt-2 text-slate-300 text-lg">
-                      Agendamento de estadias para {settings[ApartmentId.CARAGUA].name} e {settings[ApartmentId.PRAIA_GRANDE].name}.
-                    </p>
+                  {/* Título com Mascote - Agrupados */}
+                  <div className="flex-1 flex items-center justify-center gap-4">
+                    {/* Mascote */}
+                    <div className="flex-shrink-0 animate-in slide-in-from-left duration-700">
+                      <img 
+                        src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030041171/BDQTvbxHHUYTIbip.png" 
+                        alt="Mascote Reserva Praia" 
+                        className="w-24 h-24 object-contain drop-shadow-2xl hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    
+                    {/* Título e Descrição */}
+                    <div className="text-left">
+                      <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-3 tracking-tight">
+                        <Palmtree className={`w-10 h-10 text-${currentTheme.accentColor}`} />
+                        Reserva Praia - Clã do Constantino
+                      </h1>
+                      <p className="mt-2 text-slate-300 text-lg">
+                        Agendamento de estadias para {settings[ApartmentId.CARAGUA].name} e {settings[ApartmentId.PRAIA_GRANDE].name}.
+                      </p>
+                    </div>
                   </div>
                   
                   {/* Botão Desktop */}
@@ -259,6 +262,7 @@ const App: React.FC = () => {
                     onSubmit={handleNewReservation} 
                     initialData={editingReservation}
                     onCancelEdit={() => setEditingReservation(null)}
+                    selectedApartment={activeTab}
                   />
                   
                   {/* Rules Card - Only Selected Apartment */}

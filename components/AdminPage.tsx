@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ApartmentId, ApartmentSettings, Reservation, User } from '../types';
 import { login, logout, subscribeToAuth } from '../services/authService';
 import { getUsers, saveUser, updateUser, deleteUser, subscribeToUsers } from '../services/firestoreService';
-import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut, Users, Palette } from 'lucide-react';
+import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut, Users, Palette, Shield } from 'lucide-react';
+import DateBlockManager from './DateBlockManager';
 import { useLocation } from 'wouter';
 
 interface AdminPageProps {
@@ -28,7 +29,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [localSettings, setLocalSettings] = useState<Record<ApartmentId, ApartmentSettings>>(settings);
-  const [activeTab, setActiveTab] = useState<ApartmentId | 'users'>(ApartmentId.CARAGUA);
+  const [activeTab, setActiveTab] = useState<ApartmentId | 'users' | 'blocks'>(ApartmentId.CARAGUA);
   const [users, setUsers] = useState<User[]>([]);
   const [newUser, setNewUser] = useState({ name: '', email: '', color: COLORS[0] });
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -256,9 +257,25 @@ const AdminPage: React.FC<AdminPageProps> = ({
           >
             <Users className="w-4 h-4" /> Familiares
           </button>
+          <button
+            onClick={() => setActiveTab('blocks')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'blocks' 
+                ? 'bg-amber-50 text-amber-700' 
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Shield className="w-4 h-4" /> Bloqueios
+          </button>
         </div>
 
-        {activeTab === 'users' ? (
+        {activeTab === 'blocks' ? (
+          <DateBlockManager 
+            settings={localSettings}
+            onSuccess={(msg) => alert(msg)}
+            onError={(msg) => alert(msg)}
+          />
+        ) : activeTab === 'users' ? (
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Add User Form */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 h-fit">

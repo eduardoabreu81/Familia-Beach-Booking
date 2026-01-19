@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Reservation, ApartmentId, ApartmentSettings } from '../types';
-import { ChevronLeft, ChevronRight, Calendar, Edit2, Trash2, X } from 'lucide-react';
+import { DateBlock, subscribeToDateBlocks } from '../services/firestoreService';
+import { ChevronLeft, ChevronRight, Calendar, Edit2, Trash2, X, Shield } from 'lucide-react';
 
 interface BookingCalendarProps {
   reservations: Reservation[];
@@ -27,6 +28,14 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 }) => {
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [popupPosition, setPopupPosition] = useState<{x: number, y: number} | null>(null);
+  const [blocks, setBlocks] = useState<DateBlock[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDateBlocks((updatedBlocks) => {
+      setBlocks(updatedBlocks);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleReservationClick = (e: React.MouseEvent, res: Reservation) => {
     e.stopPropagation();
@@ -107,6 +116,18 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     });
   };
 
+  const getDayBlocks = (date: Date) => {
+    return blocks.filter(block => {
+      if (block.apartmentId !== activeTab) return false;
+      const checkStr = date.toISOString().split('T')[0];
+      return checkStr >= block.startDate && checkStr <= block.endDate;
+    });
+  };
+
+  const isDateBlocked = (date: Date) => {
+    return getDayBlocks(date).length > 0;
+  };
+
   const activeSettings = settings[activeTab];
 
   return (
@@ -165,6 +186,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           }
 
           const todaysReservations = getDayReservations(date);
+          const todaysBlocks = getDayBlocks(date);
           const isToday = new Date().toDateString() === date.toDateString();
           const holidayName = getHoliday(date);
 
@@ -185,6 +207,28 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
               </div>
               
               <div className="flex flex-col gap-1 w-full overflow-y-auto no-scrollbar">
+                {/* Bloqueios com faixa diagonal */}
+                {todaysBlocks.map(block => (
+                  <div 
+                    key={block.id}
+                    className="relative text-[10px] sm:text-xs px-1.5 py-1 rounded shadow-sm truncate w-full overflow-hidden border-2 border-amber-500"
+                    title={`BLOQUEADO: ${block.reason}`}
+                  >
+                    {/* Faixa diagonal preta/amarela */}
+                    <div 
+                      className="absolute inset-0 opacity-80"
+                      style={{
+                        backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 8px, #fbbf24 8px, #fbbf24 16px)'
+                      }}
+                    />
+                    <div className="relative z-10 flex items-center gap-1">
+                      <Shield className="w-3 h-3 text-white drop-shadow" />
+                      <span className="font-bold text-white drop-shadow">BLOQUEADO</span>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Reservas normais */}
                 {todaysReservations.map(res => (
                   <div 
                     key={res.id} 
