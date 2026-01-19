@@ -185,10 +185,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
                 setApartmentId(ApartmentId.CARAGUA);
                 onApartmentChange?.(ApartmentId.CARAGUA);
               }}
-              className={`p-3 rounded-lg border text-sm font-medium transition-all text-center
+              className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-center
                 ${apartmentId === ApartmentId.CARAGUA
-                  ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500 shadow-sm' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  ? 'bg-blue-50 border-blue-500 text-blue-700 ring-2 ring-blue-400 shadow-md font-bold' 
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-blue-300'}`}
             >
               {settings[ApartmentId.CARAGUA].name}
             </button>
@@ -198,10 +198,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
                 setApartmentId(ApartmentId.PRAIA_GRANDE);
                 onApartmentChange?.(ApartmentId.PRAIA_GRANDE);
               }}
-              className={`p-3 rounded-lg border text-sm font-medium transition-all text-center
+              className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-center
                 ${apartmentId === ApartmentId.PRAIA_GRANDE
-                  ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500 shadow-sm' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  ? 'bg-cyan-50 border-cyan-500 text-cyan-700 ring-2 ring-cyan-400 shadow-md font-bold' 
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-cyan-300'}`}
             >
               {settings[ApartmentId.PRAIA_GRANDE].name}
             </button>
@@ -323,7 +323,11 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
           )}
           <button
             type="submit"
-            className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow-lg shadow-slate-200 transition-all active:scale-[0.98]"
+            className={`flex-1 py-3 text-white font-semibold rounded-lg shadow-lg transition-all active:scale-[0.98] ${
+              apartmentId === ApartmentId.CARAGUA
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-blue-200'
+                : 'bg-gradient-to-r from-cyan-600 to-teal-700 hover:from-cyan-700 hover:to-teal-800 shadow-cyan-200'
+            }`}
           >
             {initialData ? 'Salvar Alterações' : 'Agendar Estadia'}
           </button>
