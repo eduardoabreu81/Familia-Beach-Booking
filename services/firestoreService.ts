@@ -22,10 +22,20 @@ const convertReservation = (doc: any): Reservation => {
   return {
     id: doc.id,
     ...data,
-    // Ensure dates are strings YYYY-MM-DD if stored differently, 
-    // but we will store them as strings to match current app logic
   } as Reservation;
 };
+
+const convertUser = (doc: any): User => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+  } as User;
+};
+
+// ============================================
+// RESERVATIONS
+// ============================================
 
 export const subscribeToReservations = (callback: (reservations: Reservation[]) => void) => {
   const q = query(collection(db, RESERVATIONS_COLLECTION));
@@ -41,10 +51,6 @@ export const getReservations = async (): Promise<Reservation[]> => {
 };
 
 export const saveReservation = async (reservation: Omit<Reservation, 'id'>): Promise<boolean> => {
-  // Check for overlap
-  // Note: In a real production app, this check should be done via Cloud Functions or Transactions 
-  // to prevent race conditions. For this scale, client-side check + Rules is acceptable but not perfect.
-  
   const q = query(
     collection(db, RESERVATIONS_COLLECTION), 
     where('apartmentId', '==', reservation.apartmentId)
@@ -73,6 +79,10 @@ export const deleteReservation = async (id: string) => {
   await deleteDoc(doc(db, RESERVATIONS_COLLECTION, id));
 };
 
+// ============================================
+// SETTINGS
+// ============================================
+
 export const getApartmentSettings = async (): Promise<Record<ApartmentId, ApartmentSettings>> => {
   const querySnapshot = await getDocs(collection(db, SETTINGS_COLLECTION));
   const settings: Record<string, ApartmentSettings> = {};
@@ -81,7 +91,7 @@ export const getApartmentSettings = async (): Promise<Record<ApartmentId, Apartm
     settings[doc.id] = doc.data() as ApartmentSettings;
   });
 
-  // If empty, return defaults (and maybe seed them)
+  // If empty, return defaults
   if (Object.keys(settings).length === 0) {
     return {
       [ApartmentId.CARAGUA]: {
@@ -110,4 +120,50 @@ export const saveApartmentSettings = async (settings: Record<ApartmentId, Apartm
   for (const [key, value] of Object.entries(settings)) {
     await setDoc(doc(db, SETTINGS_COLLECTION, key), value);
   }
+};
+
+// ============================================
+// USERS (FAMILIARES)
+// ============================================
+
+export const subscribeToUsers = (callback: (users: User[]) => void) => {
+  const q = query(collection(db, USERS_COLLECTION));
+  return onSnapshot(q, (snapshot) => {
+    const users = snapshot.docs.map(convertUser);
+    callback(users);
+  });
+};
+
+export const getUsers = async (): Promise<User[]> => {
+  const querySnapshot = await getDocs(collection(db, USERS_COLLECTION));
+  return querySnapshot.docs.map(convertUser);
+};
+
+export const saveUser = async (user: Omit<User, 'id'>): Promise<User> => {
+  // Check if user with same name already exists
+  const q = query(
+    collection(db, USERS_COLLECTION),
+    where('name', '==', user.name)
+  );
+  const snapshot = await getDocs(q);
+  
+  if (!snapshot.empty) {
+    // User exists, return existing
+    return convertUser(snapshot.docs[0]);
+  }
+
+  // Create new user
+  const docRef = await addDoc(collection(db, USERS_COLLECTION), user);
+  return {
+    id: docRef.id,
+    ...user
+  };
+};
+
+export const updateUser = async (id: string, user: Partial<User>) => {
+  await setDoc(doc(db, USERS_COLLECTION, id), user, { merge: true });
+};
+
+export const deleteUser = async (id: string) => {
+  await deleteDoc(doc(db, USERS_COLLECTION, id));
 };

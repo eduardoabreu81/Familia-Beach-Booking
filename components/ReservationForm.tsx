@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ApartmentId, Reservation, ApartmentSettings, User as UserType } from '../types';
-import { getUsers, saveUser } from '../services/storageService';
+import { getUsers, saveUser, subscribeToUsers } from '../services/firestoreService';
 import { Calendar as CalendarIcon, User, FileText, CheckCircle, AlertCircle, Palette, Mail, Plus } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 
@@ -40,8 +40,12 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    setUsers(getUsers());
-  }, []);
+    // Subscribe to users from Firebase
+    const unsubscribe = subscribeToUsers((updatedUsers) => {
+      setUsers(updatedUsers);
+    });
+    return () => unsubscribe();
+  }, [])
 
   useEffect(() => {
     if (initialData) {
@@ -101,23 +105,12 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ settings, onSubmit, i
 
     // Save new user if applicable
     if (isNewUser && guestName) {
-      const newUser: UserType = {
-        id: Math.random().toString(36).substr(2, 9),
+      await saveUser({
         name: guestName,
         email: email,
         color: color
-      };
-      saveUser(newUser);
-      setUsers(getUsers()); // Refresh list
-    }
-
-    // If editing, we might want to update the user's email if it changed
-    if (!isNewUser && selectedUserId && email) {
-      const user = users.find(u => u.id === selectedUserId);
-      if (user && user.email !== email) {
-        saveUser({ ...user, email });
-        setUsers(getUsers());
-      }
+      });
+      // No need to refresh, subscription handles it
     }
 
     const success = await onSubmit({

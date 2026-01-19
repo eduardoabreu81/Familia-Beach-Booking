@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApartmentId, ApartmentSettings, Reservation, User } from '../types';
 import { login, logout, subscribeToAuth } from '../services/authService';
-import { getUsers, saveUser } from '../services/storageService'; // We will need to migrate users too later, but for now let's fix auth first
+import { getUsers, saveUser, updateUser, deleteUser, subscribeToUsers } from '../services/firestoreService';
 import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut, Users, Palette } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -34,15 +34,23 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [, setLocation] = useLocation();
 
-  // Sync local settings when props change
+  // Sync local settings when props change and subscribe to users
   useEffect(() => {
     setLocalSettings(settings);
-    setUsers(getUsers());
     
-    const unsubscribe = subscribeToAuth((user) => {
+    const unsubscribeAuth = subscribeToAuth((user) => {
       setIsAuthenticated(!!user);
     });
-    return () => unsubscribe();
+
+    // Subscribe to users from Firebase
+    const unsubscribeUsers = subscribeToUsers((updatedUsers) => {
+      setUsers(updatedUsers);
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeUsers();
+    };
   }, [settings]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -50,7 +58,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
     setError('');
     try {
       await login(email, password);
-      // Auth state listener will handle the rest
     } catch (err) {
       setError('Login falhou. Verifique e-mail e senha.');
     }
@@ -99,36 +106,48 @@ const AdminPage: React.FC<AdminPageProps> = ({
     alert('Configurações salvas com sucesso!');
   };
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUser.name) return;
     
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newUser.name,
-      email: newUser.email,
-      color: newUser.color
-    };
-    
-    saveUser(user);
-    setUsers(getUsers());
-    setNewUser({ name: '', email: '', color: COLORS[0] });
+    try {
+      await saveUser({
+        name: newUser.name,
+        email: newUser.email,
+        color: newUser.color
+      });
+      setNewUser({ name: '', email: '', color: COLORS[0] });
+    } catch (error) {
+      console.error('Erro ao adicionar familiar:', error);
+      alert('Erro ao adicionar familiar. Tente novamente.');
+    }
   };
 
-  const handleUpdateUser = (e: React.FormEvent) => {
+  const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser || !editingUser.name) return;
 
-    saveUser(editingUser); // saveUser handles update if ID exists
-    setUsers(getUsers());
-    setEditingUser(null);
+    try {
+      await updateUser(editingUser.id, {
+        name: editingUser.name,
+        email: editingUser.email,
+        color: editingUser.color
+      });
+      setEditingUser(null);
+    } catch (error) {
+      console.error('Erro ao atualizar familiar:', error);
+      alert('Erro ao atualizar familiar. Tente novamente.');
+    }
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = async (id: string) => {
     if (confirm('Tem certeza? Isso não apagará as reservas passadas.')) {
-      const updated = users.filter(u => u.id !== id);
-      localStorage.setItem('family_beach_users_v2', JSON.stringify(updated));
-      setUsers(updated);
+      try {
+        await deleteUser(id);
+      } catch (error) {
+        console.error('Erro ao excluir familiar:', error);
+        alert('Erro ao excluir familiar. Tente novamente.');
+      }
     }
   };
 
@@ -457,27 +476,23 @@ const AdminPage: React.FC<AdminPageProps> = ({
                       <div>
                         <div className="font-medium text-slate-800">{res.guestName}</div>
                         <div className="text-xs text-slate-500">
-                          {new Date(res.startDate).toLocaleDateString('pt-BR')} até {new Date(res.endDate).toLocaleDateString('pt-BR')}
+                          {new Date(res.startDate).toLocaleDateString('pt-BR')} - {new Date(res.endDate).toLocaleDateString('pt-BR')}
                         </div>
-                        {res.email && (
-                          <div className="text-xs text-slate-400 mt-0.5">{res.email}</div>
-                        )}
                       </div>
                     </div>
                     <button
                       onClick={() => onDeleteReservation(res.id)}
-                      className="opacity-0 group-hover:opacity-100 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-all flex items-center gap-1"
+                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all"
                     >
-                      <Trash2 className="w-3 h-3" /> Excluir
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
-                
-                {reservations.filter(r => r.apartmentId === activeTab).length === 0 && (
-                  <div className="text-center py-10 text-slate-400 text-sm">
-                    Nenhuma reserva encontrada para este local.
-                  </div>
-                )}
+              {reservations.filter(r => r.apartmentId === activeTab).length === 0 && (
+                <div className="text-center py-8 text-slate-400 text-sm">
+                  Nenhuma reserva para este apartamento.
+                </div>
+              )}
             </div>
           </div>
         </div>
