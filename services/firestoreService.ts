@@ -207,10 +207,15 @@ export const getDateBlocks = async (): Promise<DateBlock[]> => {
 
 export const saveDateBlock = async (block: Omit<DateBlock, 'id'>): Promise<boolean> => {
   try {
-    await addDoc(collection(db, BLOCKS_COLLECTION), block);
+    console.log('Tentando salvar bloqueio:', block);
+    const docRef = await addDoc(collection(db, BLOCKS_COLLECTION), block);
+    console.log('Bloqueio salvo com sucesso! ID:', docRef.id);
     return true;
-  } catch (error) {
-    console.error('Error saving date block:', error);
+  } catch (error: any) {
+    console.error('Erro ao salvar bloqueio:', error);
+    console.error('Código do erro:', error.code);
+    console.error('Mensagem do erro:', error.message);
+    alert(`Erro detalhado: ${error.code} - ${error.message}`);
     return false;
   }
 };
