@@ -4,7 +4,14 @@ import { login, logout, subscribeToAuth } from '../services/authService';
 import { getUsers, saveUser, updateUser, deleteUser, subscribeToUsers } from '../services/firestoreService';
 import { Settings as SettingsIcon, Trash2, Plus, Save, X, LogOut, Users, Palette, Shield } from 'lucide-react';
 import DateBlockManager from './DateBlockManager';
+import ToastContainer from './ToastContainer';
 import { useLocation } from 'wouter';
+
+interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+}
 
 interface AdminPageProps {
   settings: Record<ApartmentId, ApartmentSettings>;
@@ -34,6 +41,17 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [newUser, setNewUser] = useState({ name: '', email: '', color: COLORS[0] });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [, setLocation] = useLocation();
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  // Toast functions
+  const addToast = (type: 'success' | 'error' | 'warning', message: string) => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
 
   // Sync local settings when props change and subscribe to users
   useEffect(() => {
@@ -104,7 +122,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
 
   const handleSave = () => {
     onUpdateSettings(localSettings);
-    alert('Configurações salvas com sucesso!');
+    addToast('success', 'Configurações salvas com sucesso!');
   };
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -120,7 +138,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
       setNewUser({ name: '', email: '', color: COLORS[0] });
     } catch (error) {
       console.error('Erro ao adicionar familiar:', error);
-      alert('Erro ao adicionar familiar. Tente novamente.');
+      addToast('error', 'Erro ao adicionar familiar. Tente novamente.');
     }
   };
 
@@ -137,7 +155,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
       setEditingUser(null);
     } catch (error) {
       console.error('Erro ao atualizar familiar:', error);
-      alert('Erro ao atualizar familiar. Tente novamente.');
+      addToast('error', 'Erro ao atualizar familiar. Tente novamente.');
     }
   };
 
@@ -147,7 +165,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
         await deleteUser(id);
       } catch (error) {
         console.error('Erro ao excluir familiar:', error);
-        alert('Erro ao excluir familiar. Tente novamente.');
+        addToast('error', 'Erro ao excluir familiar. Tente novamente.');
       }
     }
   };
@@ -272,8 +290,8 @@ const AdminPage: React.FC<AdminPageProps> = ({
         {activeTab === 'blocks' ? (
           <DateBlockManager 
             settings={localSettings}
-            onSuccess={(msg) => alert(msg)}
-            onError={(msg) => alert(msg)}
+            onSuccess={(msg) => addToast('success', msg)}
+            onError={(msg) => addToast('error', msg)}
           />
         ) : activeTab === 'users' ? (
           <div className="grid lg:grid-cols-2 gap-8">
@@ -515,6 +533,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
         </div>
         )}
       </main>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 };
